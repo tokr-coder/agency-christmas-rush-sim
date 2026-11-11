@@ -35,7 +35,7 @@
             <summary aria-label="How to play">?</summary>
             <div>
               <p>Drag a brief onto a person. Drop it on the queue to pick the slot. Drag a pill to reorder.</p>
-              <p>Chips are the brief. Emergencies name who can take them, jump the line, and stay until handled.</p>
+              <p>Chips are the brief. An emergency stops the floor until you send it to the person it names.</p>
               <p>The shop opens at night. Training costs cash and hours the next morning.</p>
             </div>
           </details>
@@ -60,6 +60,8 @@
     </div>
     <div class="sheet" id="shop" hidden></div>
     <div class="overlay" id="overlay"></div>
+    <div class="countdown" id="countdown" hidden aria-hidden="true"></div>
+    <div class="alert" id="alert" hidden></div>
     <div class="ghost" id="ghost" hidden></div>
     <script src="vendor/lottie.min.js"></script>
     <script type="module" src="js/ui.js"></script>

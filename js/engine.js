@@ -39,6 +39,7 @@ export function createGame(overrides = {}, seed = 1) {
       trained: 0,
       pendingTier: 0,
       trainLeft: 0,
+      trainSpan: 0,
       active: null,
       queue: [],
     })),
@@ -93,10 +94,10 @@ function perkLevel(state, id) {
 
 function modifiers(state) {
   const mods = {
-    coffeeRegen: 8,
-    moraleRegen: 6,
-    coffeeDrain: 3.6,
-    moraleDrain: 2.4,
+    coffeeRegen: 5.5,
+    moraleRegen: 4,
+    coffeeDrain: 4.6,
+    moraleDrain: 3.2,
     reward: 0,
   };
   const jessica = state.staff.find((person) => person.id === "jessica");
@@ -189,6 +190,8 @@ function makeTask(state, fields) {
     eventDay: null,
     group: null,
     lottie: null,
+    holding: false,
+    detail: "",
     ...fields,
     uid: state.uid++,
   };
@@ -250,9 +253,10 @@ function spawnEvent(state) {
     joint: Boolean(spec.joint),
     eventDay: spec.day,
     lottie: spec.lottie,
+    detail: spec.detail,
+    holding: true,
   });
-  state.tray.unshift(task.uid);
-  state.notice = `${spec.title} needs ${spec.allows.map((id) => nameOf(state, id)).join(" + ")}`;
+  state.notice = spec.detail;
   touch(state);
 }
 
@@ -263,16 +267,13 @@ function nameOf(state, id) {
 function commitNight(state) {
   for (const person of state.staff) {
     if (person.pendingTier > person.trained) {
-      const gained = person.pendingTier - person.trained;
       let downtime = 0;
       for (let tier = person.trained; tier < person.pendingTier; tier += 1) {
         downtime += SKILL_TREES[person.id][tier].downtime;
       }
       person.trained = person.pendingTier;
       person.trainLeft += downtime;
-      if (gained > 0 && person.trainLeft > 0) {
-        /* Training holds the active job until the hours clear. */
-      }
+      person.trainSpan = person.trainLeft;
     }
   }
   for (const [id, level] of Object.entries(state.pendingPerks)) {
@@ -295,7 +296,9 @@ function beginDay(state, opening) {
   state.phase = "work";
   state.dayLeft = state.config.dayLengthSeconds;
   state.earnedToday = 0;
-  state.spawnIn = state.day === 1 ? 0.45 : 0.16;
+  state.coffee = clamp(Math.max(state.coffee, 62), 0, 100);
+  state.morale = clamp(Math.max(state.morale, 62), 0, 100);
+  state.spawnIn = state.day === 1 ? 0.2 : 0.1;
   state.notice = state.day === 1 ? "Drag work onto a person." : "";
   if (opening) spawnOpening(state);
   scheduleEvent(state);
@@ -304,6 +307,8 @@ function beginDay(state, opening) {
 }
 
 function owner(state, uid) {
+  const task = taskById(state, uid);
+  if (task?.holding) return { person: null, where: "alert", index: -1 };
   for (const person of state.staff) {
     if (person.active === uid) return { person, where: "active", index: -1 };
     const index = person.queue.indexOf(uid);
@@ -316,7 +321,10 @@ function owner(state, uid) {
 function detach(state, uid) {
   const place = owner(state, uid);
   if (!place) return null;
-  if (place.where === "tray") state.tray.splice(place.index, 1);
+  if (place.where === "alert") {
+    const task = taskById(state, uid);
+    if (task) task.holding = false;
+  } else if (place.where === "tray") state.tray.splice(place.index, 1);
   else if (place.where === "queue") place.person.queue.splice(place.index, 1);
   else return null;
   return place;
@@ -339,6 +347,23 @@ function spillQueue(state, person) {
     if (task && task.patience != null) task.patienceLeft = Math.max(task.patienceLeft ?? 0, 0.45);
   }
   return true;
+}
+
+function seize(state, person, uid) {
+  if (person.active && person.active !== uid) {
+    person.queue.unshift(person.active);
+    person.active = null;
+  }
+  person.queue = person.queue.filter((id) => id !== uid);
+  if (person.trainLeft > 0) {
+    person.queue.unshift(uid);
+    spillQueue(state, person);
+    return;
+  }
+  person.active = uid;
+  spillQueue(state, person);
+  state.coffee = clamp(state.coffee - 2, 0, 100);
+  state.morale = clamp(state.morale - 1, 0, 100);
 }
 
 function promote(state, person) {
@@ -367,6 +392,7 @@ export function assign(state, taskUid, staffId, insertAt = "end") {
       const copy = makeTask(state, {
         kind: "event",
         title: task.title,
+        detail: task.detail,
         hours: task.hours,
         tags: task.tags.slice(),
         allows: [id],
@@ -376,17 +402,25 @@ export function assign(state, taskUid, staffId, insertAt = "end") {
         lottie: task.lottie,
       });
       const target = state.staff.find((member) => member.id === id);
-      target.queue.unshift(copy.uid);
-      spillQueue(state, target);
-      promote(state, target);
+      seize(state, target, copy.uid);
     }
-    state.notice = `${task.title} is first in line.`;
+    state.notice = `${task.title} took both desks.`;
+    touch(state);
+    return { ok: true };
+  }
+
+  if (task.kind === "event") {
+    detach(state, task.uid);
+    task.holding = false;
+    seize(state, person, task.uid);
+    state.notice = person.trainLeft > 0
+      ? `${person.name} is training. ${task.title} is next.`
+      : `${task.title} took over ${person.name}'s desk.`;
     touch(state);
     return { ok: true };
   }
 
   detach(state, task.uid);
-  if (task.kind === "event") insertAt = 0;
 
   const startNow = person.trainLeft <= 0
     && !person.active
@@ -450,6 +484,7 @@ function expireTask(state, uid) {
 
 export function tick(state, dt) {
   if (state.phase !== "work" || dt <= 0) return;
+  if (state.tasks.some((task) => task.holding)) return;
   const dtHours = dt / secondsPerGameHour(state.config);
   state.dayLeft -= dt;
 
