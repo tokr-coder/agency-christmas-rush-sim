@@ -1,4 +1,4 @@
-import { CONFIG, secondsPerGameHour } from "./config.js";
+import { CONFIG, morningHours, secondsPerGameHour, shownHours } from "./config.js";
 import { EVENTS, PERKS, SKILL_TREES, STAFF, WORK } from "./catalog.js";
 
 function mulberry32(seed) {
@@ -45,6 +45,7 @@ export function createGame(overrides = {}, seed = 1) {
     perks: {},
     pendingPerks: {},
     clearedEvents: [],
+    eventIn: null,
     spawnIn: 0.4,
     uid: 1,
     rev: 0,
@@ -59,7 +60,8 @@ export function money(n) {
 }
 
 export function hoursLeft(state) {
-  return state.dayLeft / secondsPerGameHour(state.config);
+  const simHours = state.dayLeft / secondsPerGameHour(state.config);
+  return shownHours(state.config, simHours);
 }
 
 function touch(state) {
@@ -219,6 +221,16 @@ function spawnOpening(state) {
   spawnWork(state, state.config.tutorialPatienceHours);
 }
 
+function scheduleEvent(state) {
+  const spec = EVENTS.find((item) => item.day === state.day);
+  if (!spec || state.clearedEvents.includes(spec.day)) {
+    state.eventIn = null;
+    return;
+  }
+  const morning = morningHours(state.config);
+  state.eventIn = Math.max(0.15, state.rand() * morning);
+}
+
 function spawnEvent(state) {
   const spec = EVENTS.find((item) => item.day === state.day);
   if (!spec) return;
@@ -286,7 +298,7 @@ function beginDay(state, opening) {
   state.spawnIn = state.day === 1 ? 0.45 : 0.16;
   state.notice = state.day === 1 ? "Drag work onto a person." : "";
   if (opening) spawnOpening(state);
-  spawnEvent(state);
+  scheduleEvent(state);
   for (const person of state.staff) promote(state, person);
   touch(state);
 }
@@ -477,6 +489,14 @@ export function tick(state, dt) {
     if (!task || task.kind !== "work" || task.patienceLeft == null) continue;
     task.patienceLeft -= dtHours;
     if (task.patienceLeft <= 0) expireTask(state, uid);
+  }
+
+  if (state.eventIn != null) {
+    state.eventIn -= dtHours;
+    if (state.eventIn <= 0) {
+      state.eventIn = null;
+      spawnEvent(state);
+    }
   }
 
   const workCount = state.tray.filter((uid) => taskById(state, uid)?.kind === "work").length;

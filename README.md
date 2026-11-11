@@ -16,14 +16,15 @@ Open `http://127.0.0.1:8080`.
 
 GitHub Pages can host the floor, and it cannot run PHP. The game still plays. The results screen says the board needs a PHP host.
 
-A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600 seconds). The shipped day length is `dayLengthSeconds` in `js/config.js` (240 = 4 minutes). A day is always 12 game hours, so a 6-hour emergency stays half a day if that clock changes.
+A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600 seconds). The shipped day length is `dayLengthSeconds` in `js/config.js` (240 = 4 minutes). The clock reads 6 game hours. Durations in `js/catalog.js` stay in the old 12-hour scale, and the labels are halved, so a job or a training block keeps the same real minutes.
 
 ## How the floor works
 
 - Drag a brief onto a person. Drop it on their queue to choose the slot. Drag a queued pill to reorder it.
 - Titles are cryptic. The skill chips are the brief. Matching a specialty finishes the work faster. The floor does not highlight a match.
 - Client work expires if it sits in the tray. MOU briefs are ordinary work and do not block anything else.
-- Emergencies name who can take them, jump that person's queue, and do not expire. The day 11 emergency occupies both named people.
+- Emergencies name who can take them, jump that person's queue, and do not expire. Each one arrives at a random time before noon (the floor runs 8:00–2:00). The day 11 emergency occupies both named people.
+- Holding a brief against the top or bottom edge of the screen scrolls the roster.
 - Coffee and morale fall while people are working. At empty, every job slows. The day 10 espresso emergency stops coffee from returning until it is handled.
 - The shop opens after days 1 through 11. Perks and training spend cash. Training also takes hours at the start of the next morning, and that person does not work until it ends. Day 12 goes straight to the score.
 - Spending cash does not lower the score. The score is every dollar earned.
