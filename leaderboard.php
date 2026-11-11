@@ -43,7 +43,7 @@ if (!is_numeric($score)) {
   fail(400, 'Score looks wrong.');
 }
 $score = (float) $score;
-if ($score < 0 || $score > 5000000 || floor($score) !== $score) {
+if ($score < 0 || $score > 50000 || floor($score) !== $score) {
   fail(400, 'Score looks wrong.');
 }
 

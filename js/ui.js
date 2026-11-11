@@ -1,4 +1,4 @@
-import { loadConfig } from "./config.js";
+import { loadConfig, shownHours } from "./config.js";
 import {
   PERKS,
   SKILL_TREES,
@@ -144,6 +144,7 @@ function frame(now) {
   let dt = Math.min(0.1, (now - previous) / 1000);
   if (document.hidden) dt = 0;
   if (state.phase === "work" && dt > 0) tick(state, dt);
+  if (drag?.armed && scrollDrag(dt)) moveDrag(drag.x, drag.y);
   if (state.rev !== seen && !drag?.armed) render();
   else paint();
   requestAnimationFrame(frame);
@@ -276,7 +277,7 @@ function paint() {
   const hours = hoursLeft(state);
   const clock = document.getElementById("clock");
   clock.textContent = `${Math.max(0, hours).toFixed(1)}h`;
-  clock.classList.toggle("is-late", state.phase === "work" && hours < 2);
+  clock.classList.toggle("is-late", state.phase === "work" && hours < 1);
   document.getElementById("cash").textContent = money(state.cash);
   document.getElementById("earned").textContent = money(state.earned);
   document.getElementById("day-fill").style.width = `${clamp((1 - state.dayLeft / state.config.dayLengthSeconds) * 100, 0, 100)}%`;
@@ -295,7 +296,7 @@ function paint() {
   }
   for (const node of document.querySelectorAll("[data-train]")) {
     const person = state.staff.find((member) => member.id === node.dataset.train);
-    if (person) node.textContent = `${Math.max(0, person.trainLeft).toFixed(1)}h`;
+    if (person) node.textContent = hourLabel(Math.max(0, person.trainLeft));
   }
 }
 
@@ -419,6 +420,29 @@ function moveDrag(x, y) {
   if (queue && (task.kind === "event" || overQueue)) showGap(queue, drag.index);
 }
 
+function scrollDrag(dt) {
+  if (!drag?.armed || dt <= 0) return false;
+  const edge = 88;
+  const y = drag.y;
+  const viewH = window.innerHeight;
+  let dir = 0;
+  let depth = 0;
+  if (y < edge) {
+    dir = -1;
+    depth = (edge - y) / edge;
+  } else if (y > viewH - edge) {
+    dir = 1;
+    depth = (y - (viewH - edge)) / edge;
+  }
+  if (!dir) return false;
+  const delta = dir * (280 + clamp(depth, 0, 1) * 1100) * dt;
+  const max = Math.max(0, rosterEl.scrollHeight - rosterEl.clientHeight);
+  const next = clamp(rosterEl.scrollTop + delta, 0, max);
+  if (next === rosterEl.scrollTop) return false;
+  rosterEl.scrollTop = next;
+  return true;
+}
+
 function endDrag(event, commit) {
   if (!drag || event.pointerId !== drag.pointerId) return;
   const current = drag;
@@ -529,7 +553,7 @@ function activeMarkup(person) {
   const task = person.active ? taskByUid(person.active) : null;
   if (person.trainLeft > 0) {
     return `<div class="active is-training">
-      <span>Training <b data-train="${person.id}">${person.trainLeft.toFixed(1)}h</b></span>
+      <span>Training <b data-train="${person.id}">${hourLabel(person.trainLeft)}</b></span>
       ${task ? `<div class="track"><span data-bar="${task.uid}" style="width:${task.progress}%"></span></div><small>Paused</small>` : ""}
     </div>`;
   }
@@ -605,8 +629,8 @@ function ringOffset(task) {
   return (RING * (1 - ratio)).toFixed(2);
 }
 
-function hourLabel(value) {
-  const rounded = Math.round(value * 10) / 10;
+function hourLabel(simHours) {
+  const rounded = Math.round(shownHours(state.config, simHours) * 10) / 10;
   return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}h`;
 }
 
