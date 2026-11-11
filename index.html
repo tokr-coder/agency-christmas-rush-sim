@@ -2,133 +2,66 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="The Q4 Rush: Ignite Holiday Edition. Staff the floor, clear the MOU, and bank $100,000 before the holiday shutdown."
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="The Q4 Rush: Ignite Holiday Edition. Twelve working days. Drag the briefs, train the floor, and bank what you earn." />
     <meta name="theme-color" content="#10241f" />
     <title>The Q4 Rush: Ignite Holiday Edition</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2310241f'/%3E%3Cpath d='M16 5c1.6 4.2-1.6 6.2-1.6 9.4a5.2 5.2 0 1 0 8.6-3.6c-.8 5-3.4 6.8-5.2 6.8 2.6-1.8 3.4-4.4 2.6-7.8-1.7.9-3.4 0-4.4-4.8z' fill='%23e6b45a'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
     <div class="snow" id="snow" aria-hidden="true"></div>
-    <div class="app">
-      <header class="dash">
+    <div class="app" id="app">
+      <header class="bar">
         <div class="lights" id="lights" aria-hidden="true"></div>
-        <div class="brand">
+        <h1 class="sr">The Q4 Rush</h1>
+        <div class="brand-row">
           <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
             <rect width="48" height="48" rx="14" fill="#e6b45a" />
-            <path
-              d="M24 8c2 6-2 8.4-2 13.2a7 7 0 1 0 11.4-4.6c-1 6.4-4.4 8.8-6.8 8.8 3.4-2.2 4.6-5.6 3.4-10.2-2.2 1.2-4.4.2-6-7.2z"
-              fill="#1c1612"
-            />
+            <path d="M24 8c2 6-2 8.4-2 13.2a7 7 0 1 0 11.4-4.6c-1 6.4-4.4 8.8-6.8 8.8 3.4-2.2 4.6-5.6 3.4-10.2-2.2 1.2-4.4.2-6-7.2z" fill="#1c1612" />
           </svg>
-          <div>
-            <p class="kicker">Ignite</p>
-            <h1>The Q4 Rush</h1>
-            <p class="edition">Holiday Edition</p>
+          <div class="dayblock">
+            <p class="kicker" id="day-label">Day 1/12</p>
+            <p class="clock" id="clock">12.0h</p>
           </div>
-        </div>
-
-        <div class="roi">
-          <div class="roi-top">
-            <p class="kicker">Target ROI</p>
-            <p class="budget-chip">Budget <strong id="budget">$0</strong></p>
+          <div class="moneyblock">
+            <p class="cash" id="cash">$0</p>
+            <p class="earned">Earned <strong id="earned">$0</strong></p>
           </div>
-          <p class="roi-figure" id="roi-value">$0 / $100,000</p>
-          <div class="track" aria-hidden="true"><span id="roi-fill"></span></div>
-          <p class="hint">Perks spend budget. The $100k goal counts every dollar earned.</p>
+          <details class="help">
+            <summary aria-label="How to play">?</summary>
+            <div>
+              <p>Drag a brief onto a person. Drop it on the queue to pick the slot. Drag a pill to reorder.</p>
+              <p>Chips are the brief. Emergencies name who can take them, jump the line, and stay until handled.</p>
+              <p>The shop opens at night. Training costs cash and hours the next morning.</p>
+            </div>
+          </details>
         </div>
-
         <div class="meters">
           <div class="meter" id="coffee-meter">
-            <div class="meter-label"><span>⚡ Coffee fuel</span><span id="coffee-value">100%</span></div>
+            <div class="meter-label"><span>Coffee</span><span id="coffee-value">100</span></div>
             <div class="track"><span id="coffee-fill"></span></div>
           </div>
           <div class="meter morale" id="morale-meter">
-            <div class="meter-label"><span>🎅 Team morale</span><span id="morale-value">100%</span></div>
+            <div class="meter-label"><span>Morale</span><span id="morale-value">100</span></div>
             <div class="track"><span id="morale-fill"></span></div>
           </div>
         </div>
-
-        <div class="clock-wrap">
-          <p class="kicker" id="clock-label">Holiday shutdown</p>
-          <p class="clock" id="clock" aria-labelledby="clock-label">05:00</p>
-          <p class="hint clock-hint">Christmas Eve lockout</p>
-        </div>
-
-        <details class="help">
-          <summary>How to play</summary>
-          <ol>
-            <li>Hit Assign Staff on the Client MOU first. AdWords, web, and social stay locked until it ships.</li>
-            <li>Match the brief’s skill to a specialty. A match finishes the job faster.</li>
-            <li>Every active job sips coffee and morale. At 0%, the whole floor slows hard.</li>
-            <li>Buy perks with budget. Lifetime ROI still climbs toward $100,000.</li>
-            <li>Clear the target before the holiday shutdown clock hits zero.</li>
-          </ol>
-        </details>
+        <div class="daytrack" aria-hidden="true"><span id="day-fill"></span></div>
+        <p class="notice" id="notice" aria-live="polite"></p>
       </header>
-
-      <p id="fumes" class="fumes" hidden>Coffee or morale is empty, so every job just slowed down.</p>
-
-      <main class="board" id="board">
-        <section class="col" aria-labelledby="queue-title">
-          <div class="col-h">
-            <div>
-              <p class="index">01</p>
-              <h2 id="queue-title">Task queue</h2>
-            </div>
-            <p class="col-note" id="queue-meta">Client hold is ticking</p>
-          </div>
-          <div class="col-body" id="queue"></div>
-        </section>
-
-        <section class="col" aria-labelledby="roster-title">
-          <div class="col-h">
-            <div>
-              <p class="index">02</p>
-              <h2 id="roster-title">Team roster</h2>
-            </div>
-            <p class="col-note" id="roster-meta">6 ready · 0 working</p>
-          </div>
-          <div class="col-body" id="roster"></div>
-        </section>
-
-        <section class="side" aria-label="Upgrades and live ticker">
-          <div class="panel">
-            <div class="col-h">
-              <div>
-                <p class="index">03</p>
-                <h2 id="perks-title">Office perks</h2>
-              </div>
-              <p class="col-note">Budget <strong id="budget-side">$0</strong></p>
-            </div>
-            <div class="col-body" id="upgrades"></div>
-          </div>
-          <div class="panel wire">
-            <div class="marquee" id="marquee" aria-hidden="true"></div>
-            <div class="col-h wire-h">
-              <div>
-                <p class="index">Live</p>
-                <h2>Floor wire</h2>
-              </div>
-            </div>
-            <div class="col-body" id="feed"></div>
-          </div>
-        </section>
-      </main>
+      <section class="tray-wrap" aria-label="Incoming briefs">
+        <div class="tray" id="tray"></div>
+      </section>
+      <section class="roster" id="roster" aria-label="Team"></section>
     </div>
-
-    <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+    <div class="sheet" id="shop" hidden></div>
     <div class="overlay" id="overlay"></div>
+    <div class="ghost" id="ghost" hidden></div>
+    <script src="vendor/lottie.min.js"></script>
     <script type="module" src="js/ui.js"></script>
   </body>
 </html>
