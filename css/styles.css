@@ -349,6 +349,12 @@ button, summary, input { font: inherit; }
 
 .active.is-training { color: var(--gold); }
 
+.active.is-training .track {
+  display: block;
+  height: 8px;
+  box-shadow: inset 0 0 0 1px rgba(230, 180, 90, 0.55);
+}
+
 .active small { color: rgba(246, 240, 230, 0.62); }
 
 .queue {
@@ -388,6 +394,65 @@ button, summary, input { font: inherit; }
 .pill.is-gap { margin-top: 12px; }
 
 .is-source { opacity: 0.35; }
+
+.countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  font-family: var(--serif);
+  font-size: min(62vw, 72vh);
+  font-weight: 640;
+  line-height: 0.8;
+  color: rgba(246, 240, 230, 0.34);
+  text-shadow: 0 0 48px rgba(230, 180, 90, 0.35);
+}
+
+.alert {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(7, 21, 18, 0.72);
+}
+
+.alert-card {
+  width: min(440px, 100%);
+  padding: 18px 16px 16px;
+  border-radius: 20px;
+  background: #3b1720;
+  color: var(--cream);
+  border: 1px solid rgba(230, 180, 90, 0.5);
+  box-shadow: var(--shadow);
+}
+
+.alert-card h2 {
+  margin: 4px 0 8px;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 7vw, 2.4rem);
+  line-height: 0.95;
+}
+
+.alert-card p { margin: 0 0 8px; }
+
+.alert-art {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.alert-actions .go { flex: 1 1 140px; }
 
 .ghost {
   position: fixed;

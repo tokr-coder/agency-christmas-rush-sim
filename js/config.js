@@ -16,10 +16,10 @@ export const CONFIG = {
   trayLimit: 3,
   queueLimit: 3,
   /** Game hours between new briefs once the tray has room. */
-  spawnHours: 0.4,
+  spawnHours: 0.16,
   /** How long a brief sits in the tray, in game hours, before it walks. */
   patienceHours: [1.7, 2.25],
-  tutorialSpawnHours: 0.75,
+  tutorialSpawnHours: 0.28,
   tutorialPatienceHours: 3.6,
 };
 

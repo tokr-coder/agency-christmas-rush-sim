@@ -143,6 +143,7 @@ function frame(now) {
   frame.last = now;
   let dt = Math.min(0.1, (now - previous) / 1000);
   if (document.hidden) dt = 0;
+  if (state.phase === "work" && holdingAlert() && drag) cancelDrag();
   if (state.phase === "work" && dt > 0) tick(state, dt);
   if (drag?.armed && scrollDrag(dt)) moveDrag(drag.x, drag.y);
   if (state.rev !== seen && !drag?.armed) render();
@@ -169,14 +170,17 @@ function render() {
     overlayEl.hidden = true;
     shopEl.hidden = true;
     renderBoard();
+    renderAlert();
     watchEvents();
     syncCelebration();
   } else if (state.phase === "shop") {
     overlayEl.hidden = true;
     shopEl.hidden = false;
+    hideAlert();
     renderShop();
   } else {
     shopEl.hidden = true;
+    hideAlert();
     overlayEl.hidden = false;
     if (state.phase === "results") renderResults();
     else renderTitle();
@@ -237,7 +241,7 @@ function renderTitle() {
         <ol>
           <li>Drag a brief onto someone. Drop it on their queue to pick the slot, or drag a pill to reorder.</li>
           <li>The chips are the brief. A specialty match finishes faster. Nothing on the card lights up to tell you who that is.</li>
-          <li>Emergencies name who can take them, jump that queue, and do not expire.</li>
+          <li>An emergency stops the floor. Read it, then send it to the person it names. It takes their desk, even mid-task.</li>
           <li>At night, buy office perks or training. Training spends cash and hours the next morning.</li>
           <li>After day 12 the score is every dollar earned. Top 10 can leave a name. Email stays off the board.</li>
         </ol>
@@ -281,6 +285,10 @@ function paint() {
   document.getElementById("cash").textContent = money(state.cash);
   document.getElementById("earned").textContent = money(state.earned);
   document.getElementById("day-fill").style.width = `${clamp((1 - state.dayLeft / state.config.dayLengthSeconds) * 100, 0, 100)}%`;
+  const countEl = document.getElementById("countdown");
+  const count = state.phase === "work" && state.dayLeft > 0 && state.dayLeft <= 3 ? Math.ceil(state.dayLeft) : 0;
+  countEl.hidden = !count;
+  countEl.textContent = count ? String(count) : "";
   setMeter("coffee", state.coffee);
   setMeter("morale", state.morale);
   for (const bar of document.querySelectorAll("[data-bar]")) {
@@ -297,6 +305,12 @@ function paint() {
   for (const node of document.querySelectorAll("[data-train]")) {
     const person = state.staff.find((member) => member.id === node.dataset.train);
     if (person) node.textContent = hourLabel(Math.max(0, person.trainLeft));
+  }
+  for (const bar of document.querySelectorAll("[data-train-bar]")) {
+    const person = state.staff.find((member) => member.id === bar.dataset.trainBar);
+    const span = person?.trainSpan || 0;
+    const done = span > 0 ? clamp(1 - person.trainLeft / span, 0, 1) : 0;
+    bar.style.width = `${done * 100}%`;
   }
 }
 
@@ -317,6 +331,10 @@ function onClick(event) {
   else if (action === "advance") {
     advance(state);
     render();
+  } else if (action === "alert") {
+    const result = assign(state, Number(target.dataset.uid), target.dataset.staff, 0);
+    if (!result.ok && result.reason) state.notice = result.reason;
+    render();
   } else if (action === "skill" || action === "perk") {
     const result = action === "skill" ? buySkill(state, target.dataset.staff) : buyPerk(state, target.dataset.id);
     if (!result.ok && result.reason) state.notice = result.reason;
@@ -332,7 +350,7 @@ function onSubmit(event) {
 }
 
 function onPointerDown(event) {
-  if (state.phase !== "work" || drag) return;
+  if (state.phase !== "work" || drag || holdingAlert()) return;
   const el = event.target.closest?.("[data-drag]");
   if (!el) return;
   if (event.button != null && event.button !== 0) return;
@@ -418,6 +436,49 @@ function moveDrag(x, y) {
   if (task.kind === "event") drag.index = 0;
   else if (overQueue && queue) drag.index = insertionIndex(queue, y, drag.uid);
   if (queue && (task.kind === "event" || overQueue)) showGap(queue, drag.index);
+}
+
+function cancelDrag() {
+  if (!drag) return;
+  window.clearTimeout(drag.timer);
+  drag.el?.classList.remove("is-source");
+  clearDrop();
+  ghostEl.hidden = true;
+  drag = null;
+}
+
+function holdingAlert() {
+  return state.tasks.some((task) => task.holding);
+}
+
+function hideAlert() {
+  const el = document.getElementById("alert");
+  el.hidden = true;
+  el.innerHTML = "";
+}
+
+function renderAlert() {
+  const task = state.tasks.find((item) => item.holding);
+  const el = document.getElementById("alert");
+  if (!task) {
+    hideAlert();
+    return;
+  }
+  const people = (task.allows || []).map((id) => state.staff.find((person) => person.id === id)).filter(Boolean);
+  const buttons = task.joint
+    ? `<button type="button" class="go" data-action="alert" data-uid="${task.uid}" data-staff="${people[0]?.id || ""}">Send ${esc(people.map((person) => person.name).join(" and "))}</button>`
+    : people.map((person) => `<button type="button" class="go" data-action="alert" data-uid="${task.uid}" data-staff="${person.id}">${esc(person.name)}</button>`).join("");
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="alert-card" role="dialog" aria-modal="true" aria-labelledby="alert-title">
+      <div class="alert-art"><div data-lottie="${esc(task.lottie || "siren")}"></div></div>
+      <p class="kicker">Emergency</p>
+      <h2 id="alert-title">${esc(task.title)}</h2>
+      <p>${esc(task.detail || "")}</p>
+      <p class="meta">${hourLabel(task.hours)} on their desk. The floor waits.</p>
+      <div class="alert-actions">${buttons}</div>
+    </div>
+  `;
 }
 
 function scrollDrag(dt) {
@@ -552,9 +613,12 @@ function trayCard(task) {
 function activeMarkup(person) {
   const task = person.active ? taskByUid(person.active) : null;
   if (person.trainLeft > 0) {
+    const span = person.trainSpan || person.trainLeft;
+    const done = clamp(1 - person.trainLeft / span, 0, 1);
     return `<div class="active is-training">
       <span>Training <b data-train="${person.id}">${hourLabel(person.trainLeft)}</b></span>
-      ${task ? `<div class="track"><span data-bar="${task.uid}" style="width:${task.progress}%"></span></div><small>Paused</small>` : ""}
+      <div class="track"><span data-train-bar="${person.id}" style="width:${(done * 100).toFixed(1)}%"></span></div>
+      ${task ? `<small>Paused</small>` : ""}
     </div>`;
   }
   if (!task) return `<div class="active is-idle"><span>Open</span></div>`;
