@@ -28,6 +28,8 @@ export function createGame(overrides = {}, seed = 1) {
     earnedToday: 0,
     coffee: 100,
     morale: 100,
+    /** Beer break leaves jobs slower until the next morning. */
+    beerSlow: false,
     tray: [],
     tasks: [],
     staff: STAFF.map((person) => ({
@@ -147,6 +149,7 @@ export function durationHours(state, staff, task) {
   if ((hasTag(task, "finance") || hasTag(task, "domain")) && staff.id === "jessica" && tier >= 3) hours *= 0.5;
 
   if (state.coffee <= 0 || state.morale <= 0) hours *= 2.35;
+  if (state.beerSlow) hours *= 1.5;
   return Math.max(0.35, hours);
 }
 
@@ -298,6 +301,7 @@ function beginDay(state, opening) {
   state.earnedToday = 0;
   state.coffee = clamp(Math.max(state.coffee, 62), 0, 100);
   state.morale = clamp(Math.max(state.morale, 62), 0, 100);
+  state.beerSlow = false;
   state.spawnIn = state.day === 1 ? 0.2 : 0.1;
   state.notice = state.day === 1 ? "Drag work onto a person." : "";
   if (opening) spawnOpening(state);
@@ -480,6 +484,42 @@ function expireTask(state, uid) {
   state.morale = clamp(state.morale - 5, 0, 100);
   state.notice = "A brief left the tray.";
   touch(state);
+}
+
+/** Shown-clock cost of a coffee or beer break: half an hour, five tenths. */
+export function breakCostSeconds(config) {
+  const shown = 0.5;
+  const simHours = shown * (config.gameHoursPerDay / config.shownHoursPerDay);
+  return simHours * secondsPerGameHour(config);
+}
+
+export function takeBreak(state, kind) {
+  if (state.phase !== "work") return { ok: false, reason: "closed" };
+  if (kind !== "coffee" && kind !== "beer") return { ok: false, reason: "missing" };
+  if (state.tasks.some((task) => task.holding)) return { ok: false, reason: "The floor is stopped." };
+  const spent = Math.min(state.dayLeft, breakCostSeconds(state.config));
+  state.dayLeft -= spent;
+  if (kind === "coffee") {
+    state.coffee = 50;
+  } else {
+    state.morale = Math.max(state.morale, 80);
+    state.beerSlow = true;
+  }
+  const closed = state.dayLeft <= 0;
+  if (closed) {
+    state.dayLeft = 0;
+    state.phase = state.day >= state.config.dayCount ? "results" : "shop";
+    state.notice = state.phase === "results" ? "The break is here." : "The floor is closed for the night.";
+  } else if (kind === "coffee") {
+    const stopped = state.tasks.some((task) => hasTag(task, "coffeeStop"));
+    state.notice = stopped
+      ? "Coffee break. The machine is still down, so this pot will not come back on its own."
+      : "Coffee break. The pot is back to 50.";
+  } else {
+    state.notice = "Beer break. Morale is up. Jobs take 1.5× until close.";
+  }
+  touch(state);
+  return { ok: true, spent, closed };
 }
 
 export function tick(state, dt) {
