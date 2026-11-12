@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="The Q4 Rush: Ignite Holiday Edition. Twelve working days. Drag the briefs, train the floor, and bank what you earn." />
+    <meta name="description" content="The Q4 Rush: Ignite Holiday Edition. Twelve working days. Drag the briefs, train the office, and bank what you earn." />
     <meta name="theme-color" content="#10241f" />
     <title>The Q4 Rush: Ignite Holiday Edition</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2310241f'/%3E%3Cpath d='M16 5c1.6 4.2-1.6 6.2-1.6 9.4a5.2 5.2 0 1 0 8.6-3.6c-.8 5-3.4 6.8-5.2 6.8 2.6-1.8 3.4-4.4 2.6-7.8-1.7.9-3.4 0-4.4-4.8z' fill='%23e6b45a'/%3E%3C/svg%3E" />
+    <link rel="icon" href="img/ignite.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -19,10 +19,7 @@
         <div class="lights" id="lights" aria-hidden="true"></div>
         <h1 class="sr">The Q4 Rush</h1>
         <div class="brand-row">
-          <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
-            <rect width="48" height="48" rx="14" fill="#e6b45a" />
-            <path d="M24 8c2 6-2 8.4-2 13.2a7 7 0 1 0 11.4-4.6c-1 6.4-4.4 8.8-6.8 8.8 3.4-2.2 4.6-5.6 3.4-10.2-2.2 1.2-4.4.2-6-7.2z" fill="#1c1612" />
-          </svg>
+          <img class="mark" src="img/ignite.png" alt="" />
           <div class="dayblock">
             <p class="kicker" id="day-label">Day 1/12</p>
             <p class="clock" id="clock">6.0h</p>
@@ -35,8 +32,11 @@
             <summary aria-label="How to play">?</summary>
             <div>
               <p>Drag a brief onto a person. Drop it on the queue to pick the slot. Drag a pill to reorder.</p>
-              <p>Chips are the brief. An emergency stops the floor until you send it to the person it names.</p>
-              <p>The shop opens at night. Training costs cash and hours the next morning.</p>
+              <p>Chips are the brief. An emergency stops the office until you send it to the person it names.</p>
+              <p>Coffee and morale fall while people work. Starting a job costs 2 coffee and 1 morale. A brief that leaves the tray costs 5 morale.</p>
+              <p>At 0, every job takes more than twice as long. Either meter empty is enough. Next morning, a meter under 62 comes back to 62. It does not refill to full.</p>
+              <p>Coffee break, when coffee is under 50, spends 30 minutes and sets coffee to 50. Beer break spends 30 minutes, lifts morale to 80, and jobs take 1.5× as long until close. That 1.5× stays after morale is back, and it stacks with an empty coffee meter. The slowdown ends in the morning. A break pauses the office. Nobody works through those 30 minutes.</p>
+              <p>The shop opens at night. Training costs cash and hours the next morning. Office perks change how fast the meters move. On day 10, Cup Down stops coffee from returning until Jessica repairs the machine. A coffee break still fills the pot to 50.</p>
             </div>
           </details>
         </div>
@@ -44,10 +44,14 @@
           <div class="meter" id="coffee-meter">
             <div class="meter-label"><span>Coffee</span><span id="coffee-value">100</span></div>
             <div class="track"><span id="coffee-fill"></span></div>
+            <p class="meter-hint" id="coffee-hint"></p>
+            <button type="button" class="break-btn" id="coffee-break" data-action="break" data-kind="coffee" hidden>Coffee break<small>30 min · to 50</small></button>
           </div>
           <div class="meter morale" id="morale-meter">
             <div class="meter-label"><span>Morale</span><span id="morale-value">100</span></div>
             <div class="track"><span id="morale-fill"></span></div>
+            <p class="meter-hint" id="morale-hint"></p>
+            <button type="button" class="break-btn is-beer" id="beer-break" data-action="break" data-kind="beer" hidden>Beer break<small>30 min · to 80 · 1.5×</small></button>
           </div>
         </div>
         <div class="daytrack" aria-hidden="true"><span id="day-fill"></span></div>
@@ -57,6 +61,7 @@
         <div class="tray" id="tray"></div>
       </section>
       <section class="roster" id="roster" aria-label="Team"></section>
+      <div class="break-pop" id="break-pop" hidden></div>
     </div>
     <div class="sheet" id="shop" hidden></div>
     <div class="overlay" id="overlay"></div>

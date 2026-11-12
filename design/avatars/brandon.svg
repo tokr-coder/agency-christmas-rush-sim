@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="ground">
+        <path d="M96,4C111.454,4 124,16.546 124,32L124,96C124,111.454 111.454,124 96,124L32,124C16.546,124 4,111.454 4,96L4,32C4,16.546 16.546,4 32,4L96,4Z" style="fill:rgb(31,58,74);"/>
+    </g>
+    <g id="shoulders">
+        <path d="M64,85C85.525,85 103,95.306 103,108C103,114.216 100.551,128 100.551,128L27.449,128C27.449,128 25,114.216 25,108C25,95.306 42.475,85 64,85Z" style="fill:rgb(23,54,41);"/>
+    </g>
+    <g transform="matrix(0.868311,0,0,1.0833,8.4281,-5.164617)">
+        <g id="head">
+            <ellipse cx="64" cy="62" rx="20" ry="21" style="fill:rgb(216,174,142);"/>
+        </g>
+    </g>
+    <g transform="matrix(1.060064,0,0,1.0833,-3.844104,-5.164617)">
+        <g id="hair">
+            <path d="M64,41C75.038,41 80.382,51.101 80.382,56.068C80.382,61.036 75.038,47.78 64,47.78C52.962,47.78 47.618,61.036 47.618,56.068C47.618,51.101 52.962,41 64,41Z" style="fill:rgb(255,224,116);"/>
+        </g>
+    </g>
+    <g transform="matrix(0.954875,0.297007,-0.297007,0.954875,28.661697,-19.187964)">
+        <g id="mark">
+            <ellipse cx="90" cy="86" rx="9" ry="4" style="fill:rgb(214,240,227);"/>
+        </g>
+    </g>
+    <g transform="matrix(0.859628,0,0,1,8.983799,4.5)">
+        <g id="eye-r">
+            <circle cx="74" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+        </g>
+    </g>
+    <g transform="matrix(0.859628,0,0,1,8.983799,4.5)">
+        <g id="eye-l">
+            <circle cx="54" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+        </g>
+    </g>
+</svg>

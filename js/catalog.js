@@ -69,7 +69,7 @@ export const SKILL_TREES = {
   ],
   jessica: [
     { name: "Automated Invoicing Workflows", cost: 75, downtime: 4, blurb: "Invoicing pays +20% and finishes faster" },
-    { name: "Resource Allocation Mastery", cost: 190, downtime: 8, blurb: "The floor sips 20% less coffee and morale" },
+    { name: "Resource Allocation Mastery", cost: 190, downtime: 8, blurb: "The office sips 20% less coffee and morale" },
     { name: "Operations Director", cost: 475, downtime: 10, blurb: "Money and domain crises 50% faster. Learns Strategy." },
   ],
 };

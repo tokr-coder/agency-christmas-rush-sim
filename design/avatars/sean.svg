@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="ground">
+        <path d="M96,4C111.454,4 124,16.546 124,32L124,96C124,111.454 111.454,124 96,124L32,124C16.546,124 4,111.454 4,96L4,32C4,16.546 16.546,4 32,4L96,4Z" style="fill:rgb(178,139,43);"/>
+    </g>
+    <g id="shoulders">
+        <path d="M64,85C85.525,85 103,95.306 103,108C103,114.216 100.582,128 100.582,128L27.418,128C27.418,128 25,114.216 25,108C25,95.306 42.475,85 64,85Z" style="fill:rgb(112,37,21);"/>
+    </g>
+    <g id="head">
+        <ellipse cx="64" cy="62" rx="20" ry="21" style="fill:rgb(217,161,102);"/>
+    </g>
+    <g id="hair">
+        <path d="M64,33C83.333,33.298 84,48.617 84,58C84,64.637 83.394,49.38 75.229,44.565C71.852,42.574 68.037,44.691 64,44.691C60.539,44.691 57.241,42.157 54.242,43.742C45.287,48.475 44,65.029 44,58C44,48.617 46.177,32.726 64,33Z" style="fill:rgb(21,8,3);"/>
+        <g transform="matrix(-1,-0,0,-1,128,121.714141)">
+            <path d="M64,33C83.333,33.298 84,48.617 84,58C84,64.637 83.394,49.38 75.229,44.565C71.852,42.574 68.037,44.691 64,44.691C60.539,44.691 57.241,42.157 54.242,43.742C45.287,48.475 44,65.029 44,58C44,48.617 46.177,32.726 64,33Z" style="fill:rgb(21,8,3);"/>
+        </g>
+    </g>
+    <g id="mark">
+        <circle cx="96" cy="62" r="5" style="fill:rgb(240,214,163);"/>
+    </g>
+    <g transform="matrix(1,0,0,1,0,0.5)">
+        <g id="eye-r">
+            <circle cx="74" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,0,0.5)">
+        <g id="eye-l">
+            <circle cx="54" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+        </g>
+    </g>
+</svg>

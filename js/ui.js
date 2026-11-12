@@ -1,18 +1,19 @@
-import { loadConfig, shownHours } from "./config.js";
+import { loadConfig, secondsPerGameHour, shownHours } from "./config.js";
 import {
   PERKS,
   SKILL_TREES,
   advance,
   assign,
+  breakCostSeconds,
   buyPerk,
   buySkill,
   createGame,
-  hoursLeft,
   money,
   nextSkillOffer,
   perkOffer,
   skillsOf,
   startGame,
+  takeBreak,
   tick,
 } from "./engine.js";
 
@@ -111,6 +112,7 @@ const ghostEl = document.getElementById("ghost");
 let state = createGame(loadConfig(location.search), (Date.now() ^ (Math.random() * 1e9)) >>> 0);
 let seen = -1;
 let drag = null;
+let breakAnim = null;
 let anims = [];
 let audioCtx = null;
 let audioReady = false;
@@ -123,6 +125,8 @@ render();
 requestAnimationFrame(frame);
 
 document.addEventListener("pointerdown", (event) => {
+  const help = document.querySelector(".help");
+  if (help?.open && !help.contains(event.target)) help.open = false;
   unlockAudio();
   onPointerDown(event);
 });
@@ -143,6 +147,20 @@ function frame(now) {
   frame.last = now;
   let dt = Math.min(0.1, (now - previous) / 1000);
   if (document.hidden) dt = 0;
+  if (breakAnim) {
+    breakAnim.t += dt;
+    if (breakAnim.t >= breakAnim.duration) {
+      breakAnim.t = breakAnim.duration;
+      paint();
+      const kind = breakAnim.kind;
+      breakAnim = null;
+      takeBreak(state, kind);
+      hideBreak();
+      render();
+    } else paint();
+    requestAnimationFrame(frame);
+    return;
+  }
   if (state.phase === "work" && holdingAlert() && drag) cancelDrag();
   if (state.phase === "work" && dt > 0) tick(state, dt);
   if (drag?.armed && scrollDrag(dt)) moveDrag(drag.x, drag.y);
@@ -155,6 +173,8 @@ function begin() {
   celebrationReady = false;
   activeMap = new Map();
   heard = new Set();
+  breakAnim = null;
+  hideBreak();
   unlockAudio();
   startGame(state);
   render();
@@ -185,6 +205,7 @@ function render() {
     if (state.phase === "results") renderResults();
     else renderTitle();
   }
+  if (!breakAnim) hideBreak();
   mountMotion();
   paint();
 }
@@ -215,7 +236,7 @@ function renderShop() {
   shopEl.innerHTML = `
     <div class="sheet-inner">
       <p class="kicker">Night ${state.day}</p>
-      <h2>The floor is closed</h2>
+      <h2>The office is closed</h2>
       <p class="sheet-cash">${money(state.cash)}</p>
       <p class="sheet-sub">Today ${money(state.earnedToday)} · Earned ${money(state.earned)}</p>
       ${openEvents ? `<p class="warn">${openEvents} emergency still open.</p>` : ""}
@@ -234,14 +255,14 @@ function renderTitle() {
       <p class="kicker">Ignite</p>
       <h2>The Q4 Rush</h2>
       <p class="edition">Holiday Edition</p>
-      <p>Twelve working days. Drag the briefs. The score is what the floor earns.</p>
-      <button type="button" class="go" data-action="start">Start the floor</button>
+      <p>Twelve working days. Drag the briefs. The score is what the office earns.</p>
+      <button type="button" class="go" data-action="start">Start the office</button>
       <details>
-        <summary>Floor rules</summary>
+        <summary>Office rules</summary>
         <ol>
           <li>Drag a brief onto someone. Drop it on their queue to pick the slot, or drag a pill to reorder.</li>
           <li>The chips are the brief. A specialty match finishes faster. Nothing on the card lights up to tell you who that is.</li>
-          <li>An emergency stops the floor. Read it, then send it to the person it names. It takes their desk, even mid-task.</li>
+          <li>An emergency stops the office. Read it, then send it to the person it names. It takes their desk, even mid-task.</li>
           <li>At night, buy office perks or training. Training spends cash and hours the next morning.</li>
           <li>After day 12 the score is every dollar earned. Top 10 can leave a name. Email stays off the board.</li>
         </ol>
@@ -278,19 +299,23 @@ function renderResults() {
 }
 
 function paint() {
-  const hours = hoursLeft(state);
+  const dayLeft = displayedDayLeft();
+  const hours = hoursFromLeft(dayLeft);
   const clock = document.getElementById("clock");
   clock.textContent = `${Math.max(0, hours).toFixed(1)}h`;
-  clock.classList.toggle("is-late", state.phase === "work" && hours < 1);
+  clock.classList.toggle("is-late", state.phase === "work" && hours < 1 && !breakAnim);
+  clock.classList.toggle("is-break", Boolean(breakAnim));
+  document.querySelector(".bar")?.classList.toggle("is-break", Boolean(breakAnim));
   document.getElementById("cash").textContent = money(state.cash);
   document.getElementById("earned").textContent = money(state.earned);
-  document.getElementById("day-fill").style.width = `${clamp((1 - state.dayLeft / state.config.dayLengthSeconds) * 100, 0, 100)}%`;
+  document.getElementById("day-fill").style.width = `${clamp((1 - dayLeft / state.config.dayLengthSeconds) * 100, 0, 100)}%`;
   const countEl = document.getElementById("countdown");
-  const count = state.phase === "work" && state.dayLeft > 0 && state.dayLeft <= 3 ? Math.ceil(state.dayLeft) : 0;
+  const count = !breakAnim && state.phase === "work" && state.dayLeft > 0 && state.dayLeft <= 3 ? Math.ceil(state.dayLeft) : 0;
   countEl.hidden = !count;
   countEl.textContent = count ? String(count) : "";
-  setMeter("coffee", state.coffee);
-  setMeter("morale", state.morale);
+  setMeter("coffee", displayedMeter("coffee"));
+  setMeter("morale", displayedMeter("morale"));
+  paintBreakControls();
   for (const bar of document.querySelectorAll("[data-bar]")) {
     const task = taskByUid(Number(bar.dataset.bar));
     if (task) bar.style.width = `${task.progress}%`;
@@ -319,8 +344,49 @@ function setMeter(name, value) {
   document.getElementById(`${name}-value`).textContent = String(rounded);
   document.getElementById(`${name}-fill`).style.width = `${clamp(value, 0, 100)}%`;
   const meter = document.getElementById(`${name}-meter`);
-  meter.classList.toggle("is-low", rounded <= 12);
+  const filling = Boolean(breakAnim && ((name === "coffee" && breakAnim.kind === "coffee") || (name === "morale" && breakAnim.kind === "beer")));
+  meter.classList.toggle("is-low", rounded <= 12 && rounded > 0);
   meter.classList.toggle("is-empty", rounded <= 0);
+  meter.classList.toggle("is-filling", filling);
+  meter.classList.toggle("is-beer", name === "morale" && (state.beerSlow || breakAnim?.kind === "beer") && rounded > 0);
+  const hint = document.getElementById(`${name}-hint`);
+  if (!hint) return;
+  const text = meterHint(name, value);
+  hint.textContent = text;
+  hint.classList.toggle("is-note", Boolean(text) && value > 0);
+}
+
+function meterHint(name, value) {
+  if (Math.round(value) <= 0) {
+    const label = name === "coffee" ? "coffee" : "morale";
+    return `Out of ${label}. Every job takes more than twice as long.`;
+  }
+  if (name === "morale" && (state.beerSlow || breakAnim?.kind === "beer")) {
+    return "Beer in the office. Jobs take 1.5× until close.";
+  }
+  return "";
+}
+
+function paintBreakControls() {
+  const coffeeBtn = document.getElementById("coffee-break");
+  const beerBtn = document.getElementById("beer-break");
+  if (!coffeeBtn || !beerBtn) return;
+  const working = state.phase === "work" && !breakAnim;
+  const stopped = working && holdingAlert();
+  coffeeBtn.hidden = !working || state.coffee >= 50;
+  beerBtn.hidden = !working || state.morale >= 80;
+  coffeeBtn.disabled = stopped;
+  beerBtn.disabled = stopped;
+  coffeeBtn.title = stopped
+    ? "Deal with the emergency first."
+    : state.coffee >= 50
+      ? "Coffee is already above 50."
+      : "Spend 30 minutes. Coffee returns to 50.";
+  beerBtn.title = stopped
+    ? "Deal with the emergency first."
+    : state.morale >= 80
+      ? "Morale is already at 80."
+      : "Spend 30 minutes. Morale to 80. Jobs take 1.5× until close.";
 }
 
 function onClick(event) {
@@ -328,6 +394,7 @@ function onClick(event) {
   if (!target || target.disabled) return;
   const action = target.dataset.action;
   if (action === "start" || action === "again") begin();
+  else if (action === "break") startBreak(target.dataset.kind);
   else if (action === "advance") {
     advance(state);
     render();
@@ -350,7 +417,7 @@ function onSubmit(event) {
 }
 
 function onPointerDown(event) {
-  if (state.phase !== "work" || drag || holdingAlert()) return;
+  if (state.phase !== "work" || drag || holdingAlert() || breakAnim) return;
   const el = event.target.closest?.("[data-drag]");
   if (!el) return;
   if (event.button != null && event.button !== 0) return;
@@ -451,6 +518,96 @@ function holdingAlert() {
   return state.tasks.some((task) => task.holding);
 }
 
+function startBreak(kind) {
+  if (breakAnim || state.phase !== "work" || holdingAlert()) return;
+  if (kind !== "coffee" && kind !== "beer") return;
+  if (kind === "coffee" && state.coffee >= 50) return;
+  if (kind === "beer" && state.morale >= 80) return;
+  cancelDrag();
+  const spent = Math.min(state.dayLeft, breakCostSeconds(state.config));
+  breakAnim = {
+    kind,
+    t: 0,
+    duration: 2,
+    startLeft: state.dayLeft,
+    endLeft: Math.max(0, state.dayLeft - spent),
+    startMeter: kind === "coffee" ? state.coffee : state.morale,
+    endMeter: kind === "coffee" ? 50 : Math.max(state.morale, 80),
+  };
+  showBreak(kind);
+  paint();
+}
+
+function displayedDayLeft() {
+  if (!breakAnim) return state.dayLeft;
+  const p = clamp(breakAnim.t / breakAnim.duration, 0, 1);
+  return breakAnim.startLeft + (breakAnim.endLeft - breakAnim.startLeft) * p;
+}
+
+function displayedMeter(name) {
+  const live = name === "coffee" ? state.coffee : state.morale;
+  if (!breakAnim) return live;
+  const active = (name === "coffee" && breakAnim.kind === "coffee") || (name === "morale" && breakAnim.kind === "beer");
+  if (!active) return live;
+  const p = clamp(breakAnim.t / breakAnim.duration, 0, 1);
+  return breakAnim.startMeter + (breakAnim.endMeter - breakAnim.startMeter) * p;
+}
+
+function hoursFromLeft(dayLeft) {
+  return shownHours(state.config, dayLeft / secondsPerGameHour(state.config));
+}
+
+function showBreak(kind) {
+  const el = document.getElementById("break-pop");
+  const beer = kind === "beer";
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="break-card ${beer ? "is-beer" : ""}" role="dialog" aria-modal="true" aria-labelledby="break-title">
+      <div class="break-art" aria-hidden="true">${beer ? beerArt() : coffeeArt()}</div>
+      <p class="kicker">${beer ? "Beer break" : "Coffee break"}</p>
+      <h2 id="break-title">${beer ? "Beer Fridge Time" : "The pot is back"}</h2>
+      <p>${beer
+        ? "Half an hour off the clock. Morale to 80. Jobs take 1.5× until close."
+        : "Half an hour off the clock. Coffee returns to 50."}</p>
+    </div>
+  `;
+}
+
+function hideBreak() {
+  const el = document.getElementById("break-pop");
+  if (!el || el.hidden) return;
+  el.hidden = true;
+  el.innerHTML = "";
+}
+
+function coffeeArt() {
+  return `
+    <div class="break-stage">
+      <div class="wisps" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="saucer"></div>
+      <div class="bowl">
+        <div class="brew"></div>
+      </div>
+      <div class="handle"></div>
+    </div>
+  `;
+}
+
+function beerArt() {
+  return `
+    <div class="break-stage is-beer">
+      <div class="saucer"></div>
+      <div class="bowl">
+        <div class="brew">
+          <div class="head"></div>
+          <div class="bubbles"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="handle"></div>
+    </div>
+  `;
+}
+
 function hideAlert() {
   const el = document.getElementById("alert");
   el.hidden = true;
@@ -475,7 +632,7 @@ function renderAlert() {
       <p class="kicker">Emergency</p>
       <h2 id="alert-title">${esc(task.title)}</h2>
       <p>${esc(task.detail || "")}</p>
-      <p class="meta">${hourLabel(task.hours)} on their desk. The floor waits.</p>
+      <p class="meta">${hourLabel(task.hours)} on their desk. The office waits.</p>
       <div class="alert-actions">${buttons}</div>
     </div>
   `;
@@ -671,7 +828,7 @@ function skillCard(person) {
       <p class="pips">${[1, 2, 3].map((tier) => `<i class="${tier <= person.trained ? "on" : tier === person.pendingTier ? "wait" : ""}"></i>`).join("")}</p>
       <p class="skill-name">${esc(waiting ? current.name : offer ? offer.name : "Mastered")}</p>
       <p>${esc(waiting ? "In the morning" : offer ? offer.blurb : "Every tier is trained.")}</p>
-      ${offer ? `<p class="cost">${money(offer.cost)} · ${hourLabel(offer.downtime)} off the floor tomorrow</p>` : ""}
+      ${offer ? `<p class="cost">${money(offer.cost)} · ${hourLabel(offer.downtime)} out of the office tomorrow</p>` : ""}
     </div>
     ${offer ? `<button type="button" data-action="skill" data-staff="${person.id}" ${afford ? "" : "disabled"}>Train</button>` : ""}
   </article>`;
