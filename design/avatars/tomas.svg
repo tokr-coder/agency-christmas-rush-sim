@@ -1,29 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" data-avatar="tomas">
-<!--
-  Rest pose of the tomas Lottie avatar (128×128, same canvas as lottie/tomas.json).
-  Keep each part inside its group id. Groups with data-bob="1" bounce together.
-  ground and shoulders stay still. Filled ellipses, rects, and paths are fine.
-  Skip filters, masks, text, and gradients if this should convert straight back.
--->
-  <g id="ground" data-bob="0">
-    <rect x="4" y="4" width="120" height="120" rx="28" fill="#243345"/>
-  </g>
-  <g id="shoulders" data-bob="0">
-    <ellipse cx="64" cy="108" rx="39" ry="23" fill="#1a2636"/>
-  </g>
-  <g id="head" data-bob="1">
-    <ellipse cx="64" cy="62" rx="20" ry="21" fill="#f0c7a1"/>
-  </g>
-  <g id="hair" data-bob="1">
-    <ellipse cx="64" cy="50" rx="24" ry="13" fill="#4a3329"/>
-  </g>
-  <g id="mark" data-bob="1">
-    <ellipse cx="64" cy="58" rx="17" ry="6" fill="#d6f0e3"/>
-  </g>
-  <g id="eye-r" data-bob="1">
-    <ellipse cx="74" cy="58" rx="3.5" ry="3.5" fill="#1f1714"/>
-  </g>
-  <g id="eye-l" data-bob="1">
-    <ellipse cx="54" cy="58" rx="3.5" ry="3.5" fill="#1f1714"/>
-  </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="ground">
+        <path d="M96,4C111.454,4 124,16.546 124,32L124,96C124,111.454 111.454,124 96,124L32,124C16.546,124 4,111.454 4,96L4,32C4,16.546 16.546,4 32,4L96,4Z" style="fill:rgb(36,69,44);"/>
+    </g>
+    <g id="shoulders">
+        <path d="M64,85C85.525,85 103,95.306 103,108C103,114.216 101.488,128 101.488,128L26.512,128C26.512,128 25,114.216 25,108C25,95.306 42.475,85 64,85Z" style="fill:rgb(26,38,54);"/>
+    </g>
+    <g id="head">
+        <path d="M64,41C75.038,41 83.956,50.41 84,62C84.049,74.951 82.658,80.084 75.99,81.982C73.094,82.807 69.202,84.066 64,84.045C59.956,84.029 56.711,82.819 54.113,82.357C45.36,80.803 43.946,75.889 44,62C44.045,50.41 52.962,41 64,41Z" style="fill:rgb(240,199,161);"/>
+    </g>
+    <g transform="matrix(0.833333,0,0,1.254436,10.666667,-11.414142)">
+        <g id="hair">
+            <path d="M64,37C77.246,37 88,42.825 88,50C88,57.175 77.246,45 64,45C50.754,45 40,57.175 40,50C40,42.825 50.754,37 64,37Z" style="fill:rgb(66,42,32);"/>
+        </g>
+    </g>
+    <g id="mark">
+    </g>
+    <g transform="matrix(1,0,0,1,0,2.5)">
+        <g id="eye-r">
+            <circle cx="74" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,0,2.5)">
+        <g id="eye-l">
+            <circle cx="54" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+        </g>
+    </g>
 </svg>
