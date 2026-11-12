@@ -1,29 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" data-avatar="coree">
-<!--
-  Rest pose of the coree Lottie avatar (128×128, same canvas as lottie/coree.json).
-  Keep each part inside its group id. Groups with data-bob="1" bounce together.
-  ground and shoulders stay still. Filled ellipses, rects, and paths are fine.
-  Skip filters, masks, text, and gradients if this should convert straight back.
--->
-  <g id="ground" data-bob="0">
-    <rect x="4" y="4" width="120" height="120" rx="28" fill="#6e2430"/>
-  </g>
-  <g id="shoulders" data-bob="0">
-    <ellipse cx="64" cy="108" rx="39" ry="23" fill="#421721"/>
-  </g>
-  <g id="head" data-bob="1">
-    <ellipse cx="64" cy="62" rx="20" ry="21" fill="#e0ad87"/>
-  </g>
-  <g id="hair" data-bob="1">
-    <ellipse cx="64" cy="50" rx="23" ry="14" fill="#3b241c"/>
-  </g>
-  <g id="mark" data-bob="1">
-    <ellipse cx="92" cy="28" rx="7" ry="7" fill="#f0d6a3"/>
-  </g>
-  <g id="eye-r" data-bob="1">
-    <ellipse cx="74" cy="58" rx="3.5" ry="3.5" fill="#1f1714"/>
-  </g>
-  <g id="eye-l" data-bob="1">
-    <ellipse cx="54" cy="58" rx="3.5" ry="3.5" fill="#1f1714"/>
-  </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="ground">
+        <path d="M96,4C111.454,4 124,16.546 124,32L124,96C124,111.454 111.454,124 96,124L32,124C16.546,124 4,111.454 4,96L4,32C4,16.546 16.546,4 32,4L96,4Z" style="fill:rgb(110,36,48);"/>
+    </g>
+    <g transform="matrix(0.884046,0,0,1,7.421057,0)">
+        <g id="shoulders">
+            <path d="M64,85C85.525,85 103,95.306 103,108C103,114.443 96.651,128 96.651,128L30.855,128C30.855,128 25,114.262 25,108C25,95.306 42.475,85 64,85Z" style="fill:rgb(66,23,33);"/>
+        </g>
+    </g>
+    <g id="head">
+        <path d="M64,41C75.038,41 81.742,50.41 81.742,62C81.742,73.59 69.675,82.918 64,83C59.384,83.067 46.258,73.59 46.258,62C46.258,50.41 52.962,41 64,41Z" style="fill:rgb(224,173,135);"/>
+    </g>
+    <g id="hair">
+        <path d="M64,36C76.694,36 84.872,42.572 87,50C87.847,52.955 97.774,86.056 84,86.198C82.868,86.209 81.446,53.38 79.782,53.007C75.888,52.133 70.674,50.593 64.776,50.593C58.598,50.593 52.802,52.283 48.48,53.127C46.717,53.471 45.204,86.187 44,86.173C28.833,86 40.153,52.927 41,50C43.148,42.578 51.306,36 64,36Z" style="fill:rgb(255,251,131);"/>
+    </g>
+    <g id="mark">
+        <circle cx="92" cy="28" r="7" style="fill:rgb(240,214,163);"/>
+    </g>
+    <g id="eye-r">
+        <circle cx="74" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+    </g>
+    <g id="eye-l">
+        <circle cx="54" cy="58" r="3.5" style="fill:rgb(31,23,20);"/>
+    </g>
 </svg>
