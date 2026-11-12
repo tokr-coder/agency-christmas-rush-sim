@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" data-avatar="brandon">
+<!--
+  Rest pose of the brandon Lottie avatar (128×128, same canvas as lottie/brandon.json).
+  Keep each part inside its group id. Groups with data-bob="1" bounce together.
+  ground and shoulders stay still. Filled ellipses, rects, and paths are fine.
+  Skip filters, masks, text, and gradients if this should convert straight back.
+-->
+  <g id="ground" data-bob="0">
+    <rect x="4" y="4" width="120" height="120" rx="28" fill="#1f4a38"/>
+  </g>
+  <g id="shoulders" data-bob="0">
+    <ellipse cx="64" cy="108" rx="39" ry="23" fill="#173629"/>
+  </g>
+  <g id="head" data-bob="1">
+    <ellipse cx="64" cy="62" rx="20" ry="21" fill="#c78742"/>
+  </g>
+  <g id="hair" data-bob="1">
+    <ellipse cx="64" cy="50" rx="20" ry="9" fill="#291a14"/>
+  </g>
+  <g id="mark" data-bob="1">
+    <ellipse cx="90" cy="86" rx="9" ry="4" fill="#d6f0e3"/>
+  </g>
+  <g id="eye-r" data-bob="1">
+    <ellipse cx="74" cy="58" rx="3.5" ry="3.5" fill="#1f1714"/>
+  </g>
+  <g id="eye-l" data-bob="1">
+    <ellipse cx="54" cy="58" rx="3.5" ry="3.5" fill="#1f1714"/>
+  </g>
+</svg>

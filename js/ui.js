@@ -46,54 +46,60 @@ const PORTRAITS = {
 const LOOKS = {
   coree: `
     <rect width="64" height="64" rx="20" fill="#6e2430"/>
-    <path d="M14 64c2-12 10-20 18-20s16 8 18 20" fill="#431820"/>
-    <path d="M8 42c3-10 7-18 12-22 1 10 0 20-2 30 3 6 5 12 6 14h-8c-2-6-6-14-8-22z" fill="#e8c15a"/>
-    <path d="M56 42c-3-10-7-18-12-22-1 10 0 20 2 30-3 6-5 12-6 14h8c2-6 6-14 8-22z" fill="#e8c15a"/>
-    <path d="M32 14l18 18-7 14-11 14-11-14-7-18z" fill="#f3d0b4"/>
-    <path d="M16 30c4-14 10-18 16-18s12 4 16 18c-5-7-10-9-16-9s-11 2-16 9z" fill="#e8c15a"/>
-    <circle cx="26" cy="32" r="1.3" fill="#241c18"/>
-    <circle cx="38" cy="32" r="1.3" fill="#241c18"/>`,
+    <path d="M8 66c2-18 13-26 24-26s22 8 24 26" fill="#431820"/>
+    <circle cx="32" cy="31" r="12" fill="#e0ad86"/>
+    <path d="M18 32c1-16 9-22 16-20 8 1 13 8 12 18-3-8-8-11-14-10-7 1-11 6-14 12z" fill="#3a241c"/>
+    <circle cx="27.5" cy="31" r="1.15" fill="#241c18"/>
+    <circle cx="36.5" cy="31" r="1.15" fill="#241c18"/>
+    <path d="M47 16l1.1 2.8 2.9.2-2.2 1.9.7 2.8-2.5-1.5-2.5 1.5.7-2.8-2.2-1.9 2.9-.2z" fill="#f0d7a2"/>`,
   brandon: `
     <rect width="64" height="64" rx="20" fill="#1f4a38"/>
-    <path d="M18 64c1-12 7-18 14-18s13 6 14 18" fill="#173628"/>
-    <ellipse cx="32" cy="36" rx="6" ry="16" fill="#e8c09a"/>
-    <path d="M26.5 26c.4-9 3-13 5.5-13s5.1 4 5.5 13c-1.4-3.5-3.2-5-5.5-5s-4.1 1.5-5.5 5z" fill="#f0d36a"/>
-    <circle cx="29.8" cy="35" r="1" fill="#241c18"/>
-    <circle cx="34.4" cy="35" r="1" fill="#241c18"/>`,
+    <path d="M8 66c2-18 13-26 24-26s22 8 24 26" fill="#173628"/>
+    <circle cx="32" cy="31" r="12" fill="#c68642"/>
+    <path d="M20 28c1-12 6-16 12-16s11 5 12 14c-3-4-7-6-12-6s-9 2-12 8z" fill="#2a1b14"/>
+    <path d="M24 38c2 3 5 4 8 4s6-1 8-4" fill="none" stroke="#2a1b14" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="27.5" cy="31" r="1.15" fill="#241c18"/>
+    <circle cx="36.5" cy="31" r="1.15" fill="#241c18"/>
+    <path d="M46 42h8v3h-8z" fill="#d7efe3"/>`,
   tomas: `
     <rect width="64" height="64" rx="20" fill="#243246"/>
-    <path d="M12 64c2-14 11-22 20-22s18 8 20 22" fill="#1b2636"/>
-    <path d="M20 32c1-11 5-15 12-15s11 4 12 15v14H20z" fill="#e7c4a6"/>
-    <path d="M21 30c1-11 6-15 11-15s10 4 11 15c-3-5-6-7-11-7s-8 2-11 7z" fill="#5c3b28"/>
-    <circle cx="27" cy="34" r="1.15" fill="#241c18"/>
-    <circle cx="37" cy="34" r="1.15" fill="#241c18"/>
-    <path d="M26 42h12" stroke="#a86b52" stroke-width="1.4" stroke-linecap="round"/>`,
+    <path d="M8 66c2-18 13-26 24-26s22 8 24 26" fill="#1b2636"/>
+    <circle cx="32" cy="31" r="12" fill="#f0c7a0"/>
+    <path d="M18 30c2-14 8-20 14-20 7 0 13 6 15 16-4-2-6-8-9-9-5-1-8 2-10 6-2-3-6-4-10-1 0 3 0 6 0 8z" fill="#4a3428"/>
+    <circle cx="27.2" cy="31" r="4.2" fill="none" stroke="#d7efe3" stroke-width="1.4"/>
+    <circle cx="36.8" cy="31" r="4.2" fill="none" stroke="#d7efe3" stroke-width="1.4"/>
+    <path d="M31.4 31h1.2" stroke="#d7efe3" stroke-width="1.4"/>
+    <circle cx="27.2" cy="31" r="1.05" fill="#241c18"/>
+    <circle cx="36.8" cy="31" r="1.05" fill="#241c18"/>`,
   sean: `
     <rect width="64" height="64" rx="20" fill="#1d3f6e"/>
-    <path d="M14 64c1-10 9-16 18-16s17 6 18 16" fill="#16345c"/>
-    <ellipse cx="32" cy="30" rx="12" ry="14" fill="#c68642"/>
-    <path d="M20 28c1-14 6-16 12-16s11 2 12 16c-3-6-7-8-12-8s-9 2-12 8z" fill="#1c140f"/>
-    <path d="M20 32c1 10 4 18 12 20 8-2 11-10 12-20-3 8-7 11-12 11s-9-3-12-11z" fill="#1c140f"/>
-    <circle cx="27.2" cy="28" r="1.2" fill="#241c18"/>
-    <circle cx="36.8" cy="28" r="1.2" fill="#241c18"/>`,
+    <path d="M10 64c1-14 10-20 22-20s21 6 22 20" fill="#16345c"/>
+    <path d="M16 46h32v6H16z" fill="#f6f0e6"/>
+    <circle cx="32" cy="30" r="12" fill="#8d5524"/>
+    <path d="M20 28c2-12 7-16 12-16 6 0 11 5 13 13-4-2-8-3-13-3s-9 1-12 6z" fill="#24160f"/>
+    <circle cx="27.5" cy="30" r="1.15" fill="#241c18"/>
+    <circle cx="36.5" cy="30" r="1.15" fill="#241c18"/>
+    <rect x="44" y="40" width="10" height="7" rx="1.5" fill="#e6b45a"/>`,
   kajal: `
     <rect width="64" height="64" rx="20" fill="#b26b2c"/>
-    <path d="M14 62c2-12 10-18 18-18s16 6 18 18" fill="#8a4e18"/>
-    <path d="M17 38c1-8 3-16 5-20 1 7 1 14 0 20v10h-5z" fill="#24160f"/>
-    <path d="M47 38c-1-8-3-16-5-20-1 7-1 14 0 20v10h5z" fill="#24160f"/>
-    <circle cx="32" cy="34" r="13.5" fill="#e0b07a"/>
-    <path d="M18 32c2-12 8-16 14-16s12 4 14 16c-4-6-8-8-14-8s-10 2-14 8z" fill="#24160f"/>
-    <circle cx="27" cy="34" r="1.2" fill="#241c18"/>
-    <circle cx="37" cy="34" r="1.2" fill="#241c18"/>`,
+    <path d="M8 66c2-16 12-22 24-22s22 6 24 22" fill="#8a4e18"/>
+    <path d="M16 34c0 14 6 24 16 24s16-10 16-24" fill="#2a1b14"/>
+    <circle cx="32" cy="29" r="11" fill="#d9a066"/>
+    <path d="M20 28c1-12 7-18 13-17 7 1 12 8 11 16-2-7-6-10-12-10s-10 3-12 11z" fill="#2a1b14"/>
+    <circle cx="27.6" cy="29" r="1.15" fill="#241c18"/>
+    <circle cx="36.2" cy="29" r="1.15" fill="#241c18"/>
+    <circle cx="44" cy="34" r="2" fill="#f0d7a2"/>`,
   jessica: `
     <rect width="64" height="64" rx="20" fill="#3f6b52"/>
-    <path d="M16 64c1-14 8-20 16-20s15 6 16 20" fill="#2d5340"/>
-    <path d="M10 34c3-14 7-20 12-22 0 12-1 22 1 32 2 8 3 16 4 20h-9c-3-8-7-18-8-30z" fill="#2a160f"/>
-    <path d="M54 34c-3-14-7-20-12-22 0 12 1 22-1 32-2 8-3 16-4 20h9c3-8 7-18 8-30z" fill="#2a160f"/>
-    <ellipse cx="32" cy="32" rx="8.5" ry="16" fill="#f6d7c0"/>
-    <path d="M22 28c2-12 6-15 10-15s8 3 10 15c-3-6-6-8-10-8s-7 2-10 8z" fill="#2a160f"/>
-    <circle cx="28.6" cy="32" r="1.1" fill="#241c18"/>
-    <circle cx="35.4" cy="32" r="1.1" fill="#241c18"/>`,
+    <path d="M8 66c2-18 13-26 24-26s22 8 24 26" fill="#f4efe6"/>
+    <path d="M28 40h8l2 16H26z" fill="#9d3140"/>
+    <circle cx="32" cy="30" r="11.5" fill="#f3d2b5"/>
+    <path d="M21 26c2-10 6-14 11-14 6 0 11 5 12 12-2-1-4-6-8-7-5-1-8 1-10 4-1-2-3-3-5-2 0 3 0 5 0 7z" fill="#6b3a28"/>
+    <circle cx="32" cy="16" r="4" fill="#6b3a28"/>
+    <circle cx="27.6" cy="30" r="1.1" fill="#241c18"/>
+    <circle cx="36.2" cy="30" r="1.1" fill="#241c18"/>
+    <circle cx="46" cy="18" r="3.2" fill="#9d3140"/>
+    <circle cx="46" cy="18" r="1.3" fill="#1f4a38"/>`,
 };
 
 const RING = 94.248;
@@ -832,7 +838,7 @@ function avatarMarkup(id) {
   if (PORTRAITS[id]) {
     return `<div class="avatar"><img class="avatar-fallback" alt="" src="${esc(PORTRAITS[id])}" /></div>`;
   }
-  return `<div class="avatar"><svg class="token" viewBox="0 0 64 64" aria-hidden="true">${LOOKS[id] || ""}</svg></div>`;
+  return `<div class="avatar"><div class="avatar-fallback"><svg class="token" viewBox="0 0 64 64" aria-hidden="true">${LOOKS[id] || ""}</svg></div><div class="avatar-lottie" data-lottie="${esc(id)}"></div></div>`;
 }
 
 function tag(skill, extra = "") {
