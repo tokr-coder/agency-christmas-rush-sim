@@ -496,7 +496,7 @@ export function breakCostSeconds(config) {
 export function takeBreak(state, kind) {
   if (state.phase !== "work") return { ok: false, reason: "closed" };
   if (kind !== "coffee" && kind !== "beer") return { ok: false, reason: "missing" };
-  if (state.tasks.some((task) => task.holding)) return { ok: false, reason: "The floor is stopped." };
+  if (state.tasks.some((task) => task.holding)) return { ok: false, reason: "The office is stopped." };
   const spent = Math.min(state.dayLeft, breakCostSeconds(state.config));
   state.dayLeft -= spent;
   if (kind === "coffee") {
@@ -509,7 +509,7 @@ export function takeBreak(state, kind) {
   if (closed) {
     state.dayLeft = 0;
     state.phase = state.day >= state.config.dayCount ? "results" : "shop";
-    state.notice = state.phase === "results" ? "The break is here." : "The floor is closed for the night.";
+    state.notice = state.phase === "results" ? "The break is here." : "The office is closed for the night.";
   } else if (kind === "coffee") {
     const stopped = state.tasks.some((task) => hasTag(task, "coffeeStop"));
     state.notice = stopped
@@ -593,7 +593,7 @@ export function tick(state, dt) {
   if (state.dayLeft <= 0) {
     state.dayLeft = 0;
     state.phase = state.day >= state.config.dayCount ? "results" : "shop";
-    state.notice = state.phase === "results" ? "The break is here." : "The floor is closed for the night.";
+    state.notice = state.phase === "results" ? "The break is here." : "The office is closed for the night.";
     touch(state);
   }
 }

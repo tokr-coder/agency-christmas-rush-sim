@@ -4,7 +4,7 @@
  *  hours, so a job keeps the same real minutes when the label changes.
  *  shownHoursPerDay is what the clock and labels read. 6 shown hours across
  *  the same 12 simulation hours means every label is half as long.
- *  The floor opens at 8:00 and closes at 14:00, so noon is 4 shown hours in.
+ *  The office opens at 8:00 and closes at 14:00, so noon is 4 shown hours in.
  *  A local URL can rehearse a shorter day: ?daySeconds=20
  */
 

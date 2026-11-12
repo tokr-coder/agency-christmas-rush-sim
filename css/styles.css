@@ -4,6 +4,7 @@
   --paper: #fffaf3;
   --ink: #1c1612;
   --gold: #e6b45a;
+  --logo: #41B649;
   --cran: #9d3140;
   --line: rgba(28, 22, 18, 0.1);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
@@ -104,7 +105,7 @@ button, summary, input { font: inherit; }
 
 .brand-row { display: flex; align-items: center; gap: 10px; }
 
-.mark { width: 36px; height: 36px; flex: none; }
+.mark { width: 36px; height: 36px; flex: none; display: block; object-fit: contain; }
 
 .kicker, .role, .earned, .meter-label, .meta, .need, .empty, .sheet-sub, .warn, .specs {
   margin: 0;
@@ -356,7 +357,7 @@ button, summary, input { font: inherit; }
   border: 1px solid rgba(246, 240, 230, 0.08);
 }
 
-.person.is-over { outline: 2px solid var(--gold); outline-offset: 1px; }
+.person.is-over { outline: 2px solid var(--logo); outline-offset: 1px; }
 
 .person.is-bad { outline: 2px solid #e07a86; outline-offset: 1px; }
 
@@ -387,12 +388,15 @@ button, summary, input { font: inherit; }
 
 .active.is-idle { color: rgba(246, 240, 230, 0.5); }
 
-.active.is-training { color: var(--gold); }
+.active.is-training { color: var(--logo); }
+
+.active .track > span,
+.active.is-training .track > span { background: var(--logo); }
 
 .active.is-training .track {
   display: block;
   height: 8px;
-  box-shadow: inset 0 0 0 1px rgba(230, 180, 90, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(65, 182, 73, 0.7);
 }
 
 .active small { color: rgba(246, 240, 230, 0.62); }
@@ -405,7 +409,7 @@ button, summary, input { font: inherit; }
   border-radius: 10px;
 }
 
-.queue.is-endgap { box-shadow: inset 0 -3px 0 var(--gold); }
+.queue.is-endgap { box-shadow: inset 0 -3px 0 var(--logo); }
 
 .pill {
   display: flex;
@@ -429,7 +433,7 @@ button, summary, input { font: inherit; }
 
 .pill.is-event { background: rgba(157, 49, 64, 0.45); }
 
-.pill:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+.pill:first-child { box-shadow: inset 3px 0 0 var(--logo); }
 
 .pill.is-gap { margin-top: 12px; }
 
@@ -809,6 +813,8 @@ button, .go {
 }
 
 button:disabled { opacity: 0.45; cursor: default; }
+
+.sheet .offer button { background: var(--logo); color: #06210a; }
 
 .go { width: 100%; margin-top: 14px; padding: 14px; font-size: 1rem; }
 
