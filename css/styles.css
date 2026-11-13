@@ -197,6 +197,28 @@ button, summary, input { font: inherit; }
   margin-bottom: 3px;
 }
 
+.meter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meter-bar .track { flex: 1; }
+
+.refill {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: #1c1612;
+}
+
+.refill svg { width: 16px; height: 16px; display: block; }
+
+.refill.is-beer { background: #c47a3a; }
+
 .track, .daytrack {
   height: 8px;
   background: rgba(246, 240, 230, 0.28);
@@ -232,22 +254,6 @@ button, summary, input { font: inherit; }
 .meter-hint:empty { display: none; }
 
 .meter-hint.is-note { color: var(--gold); }
-
-.break-btn {
-  width: 100%;
-  margin-top: 6px;
-  padding: 6px 8px;
-  font-size: 0.72rem;
-  line-height: 1.15;
-}
-
-.break-btn small {
-  display: block;
-  font-weight: 550;
-  letter-spacing: 0.01em;
-}
-
-.break-btn.is-beer { background: #c47a3a; }
 
 .notice {
   min-height: 1.15em;
@@ -533,6 +539,28 @@ button, summary, input { font: inherit; }
 }
 
 .break-card p { margin: 0; line-height: 1.35; }
+
+.break-card.is-ask { padding-top: 18px; text-align: left; }
+
+.break-card.is-ask h2 { font-size: 1.65rem; }
+
+.break-card.is-ask p + p { margin-top: 8px; }
+
+.ask-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ask-actions button { flex: 1; }
+
+.ask-cancel {
+  background: transparent;
+  color: inherit;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.break-card.is-beer .ask-ok { background: #c47a3a; color: #1c1612; }
 
 .break-art { height: 150px; display: grid; place-items: center; }
 
