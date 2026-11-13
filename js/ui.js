@@ -113,6 +113,7 @@ let state = createGame(loadConfig(location.search), (Date.now() ^ (Math.random()
 let seen = -1;
 let drag = null;
 let breakAnim = null;
+let breakAsk = null;
 let anims = [];
 let audioCtx = null;
 let audioReady = false;
@@ -128,6 +129,8 @@ document.addEventListener("pointerdown", (event) => {
   const help = document.querySelector(".help");
   if (help?.open && !help.contains(event.target)) help.open = false;
   unlockAudio();
+  const ask = document.getElementById("break-ask");
+  if (breakAsk && !ask?.querySelector(".break-card")?.contains(event.target)) return;
   onPointerDown(event);
 });
 document.addEventListener("pointermove", onPointerMove);
@@ -147,6 +150,11 @@ function frame(now) {
   frame.last = now;
   let dt = Math.min(0.1, (now - previous) / 1000);
   if (document.hidden) dt = 0;
+  if (breakAsk) {
+    paint();
+    requestAnimationFrame(frame);
+    return;
+  }
   if (breakAnim) {
     breakAnim.t += dt;
     if (breakAnim.t >= breakAnim.duration) {
@@ -174,6 +182,7 @@ function begin() {
   activeMap = new Map();
   heard = new Set();
   breakAnim = null;
+  closeBreakAsk();
   hideBreak();
   unlockAudio();
   startGame(state);
@@ -206,6 +215,7 @@ function render() {
     else renderTitle();
   }
   if (!breakAnim) hideBreak();
+  if (state.phase !== "work") closeBreakAsk();
   mountMotion();
   paint();
 }
@@ -390,11 +400,17 @@ function paintBreakControls() {
 }
 
 function onClick(event) {
+  if (event.target.id === "break-ask") {
+    closeBreakAsk();
+    return;
+  }
   const target = event.target.closest("[data-action]");
   if (!target || target.disabled) return;
   const action = target.dataset.action;
   if (action === "start" || action === "again") begin();
-  else if (action === "break") startBreak(target.dataset.kind);
+  else if (action === "break-ask") openBreakAsk(target.dataset.kind);
+  else if (action === "break-cancel") closeBreakAsk();
+  else if (action === "break-ok") confirmBreak();
   else if (action === "advance") {
     advance(state);
     render();
@@ -417,7 +433,7 @@ function onSubmit(event) {
 }
 
 function onPointerDown(event) {
-  if (state.phase !== "work" || drag || holdingAlert() || breakAnim) return;
+  if (state.phase !== "work" || drag || holdingAlert() || breakAnim || breakAsk) return;
   const el = event.target.closest?.("[data-drag]");
   if (!el) return;
   if (event.button != null && event.button !== 0) return;
@@ -516,6 +532,46 @@ function cancelDrag() {
 
 function holdingAlert() {
   return state.tasks.some((task) => task.holding);
+}
+
+function openBreakAsk(kind) {
+  if (breakAsk || breakAnim || state.phase !== "work" || holdingAlert()) return;
+  if (kind !== "coffee" && kind !== "beer") return;
+  if (kind === "coffee" && state.coffee >= 50) return;
+  if (kind === "beer" && state.morale >= 80) return;
+  cancelDrag();
+  breakAsk = kind;
+  const el = document.getElementById("break-ask");
+  const beer = kind === "beer";
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="break-card is-ask ${beer ? "is-beer" : ""}" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+      <p class="kicker">${beer ? "Beer break" : "Coffee break"}</p>
+      <h2 id="ask-title">${beer ? "Beer Fridge Time" : "The pot is back"}</h2>
+      <p>${beer
+        ? "Spends 30 minutes and lifts morale to 80. The office pauses. Nobody works through those 30 minutes. Jobs take 1.5× until close. That stays after morale is back, and it stacks with an empty coffee meter. The slowdown ends in the morning."
+        : "Spends 30 minutes and sets coffee to 50. The office pauses. Nobody works through those 30 minutes."}</p>
+      <p>At 0, every job takes more than twice as long. Either meter empty is enough. Next morning, a meter under 62 comes back to 62. It does not refill to full.</p>
+      <div class="ask-actions">
+        <button type="button" class="ask-cancel" data-action="break-cancel">Cancel</button>
+        <button type="button" class="ask-ok" data-action="break-ok">OK</button>
+      </div>
+    </div>
+  `;
+}
+
+function closeBreakAsk() {
+  breakAsk = null;
+  const el = document.getElementById("break-ask");
+  if (!el) return;
+  el.hidden = true;
+  el.innerHTML = "";
+}
+
+function confirmBreak() {
+  const kind = breakAsk;
+  closeBreakAsk();
+  if (kind) startBreak(kind);
 }
 
 function startBreak(kind) {

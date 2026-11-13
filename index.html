@@ -43,15 +43,23 @@
         <div class="meters">
           <div class="meter" id="coffee-meter">
             <div class="meter-label"><span>Coffee</span><span id="coffee-value">100</span></div>
-            <div class="track"><span id="coffee-fill"></span></div>
+            <div class="meter-bar">
+              <div class="track"><span id="coffee-fill"></span></div>
+              <button type="button" class="refill" id="coffee-break" data-action="break-ask" data-kind="coffee" hidden aria-label="Coffee break">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v5.2A4.2 4.2 0 0 1 11.8 18H9.2A4.2 4.2 0 0 1 5 13.8V9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 11h2.1a2.2 2.2 0 0 1 0 4.4H16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 5.2c.3 1 .1 1.5.5 2.3M12 5.2c.3 1 .1 1.5.5 2.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </button>
+            </div>
             <p class="meter-hint" id="coffee-hint"></p>
-            <button type="button" class="break-btn" id="coffee-break" data-action="break" data-kind="coffee" hidden>Coffee break<small>30 min · to 50</small></button>
           </div>
           <div class="meter morale" id="morale-meter">
             <div class="meter-label"><span>Morale</span><span id="morale-value">100</span></div>
-            <div class="track"><span id="morale-fill"></span></div>
+            <div class="meter-bar">
+              <div class="track"><span id="morale-fill"></span></div>
+              <button type="button" class="refill is-beer" id="beer-break" data-action="break-ask" data-kind="beer" hidden aria-label="Beer break">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h9v8.2A3.4 3.4 0 0 1 11.6 20H9.4A3.4 3.4 0 0 1 6 16.2V8z" fill="currentColor"/><path d="M15 10h2.2a2.2 2.2 0 0 1 0 4.4H15" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.2 4.4c.4.9.2 1.4.6 2.2M11.4 4.4c.4.9.2 1.4.6 2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </button>
+            </div>
             <p class="meter-hint" id="morale-hint"></p>
-            <button type="button" class="break-btn is-beer" id="beer-break" data-action="break" data-kind="beer" hidden>Beer break<small>30 min · to 80 · 1.5×</small></button>
           </div>
         </div>
         <div class="daytrack" aria-hidden="true"><span id="day-fill"></span></div>
@@ -61,6 +69,7 @@
         <div class="tray" id="tray"></div>
       </section>
       <section class="roster" id="roster" aria-label="Team"></section>
+      <div class="break-pop" id="break-ask" hidden></div>
       <div class="break-pop" id="break-pop" hidden></div>
     </div>
     <div class="sheet" id="shop" hidden></div>

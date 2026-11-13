@@ -227,6 +227,12 @@ function spawnOpening(state) {
   spawnWork(state, state.config.tutorialPatienceHours);
 }
 
+function simHoursUntilNoon(state) {
+  const left = state.dayLeft / secondsPerGameHour(state.config);
+  const afternoon = state.config.gameHoursPerDay - morningHours(state.config);
+  return Math.max(0, left - afternoon);
+}
+
 function scheduleEvent(state) {
   const spec = EVENTS.find((item) => item.day === state.day);
   if (!spec || state.clearedEvents.includes(spec.day)) {
@@ -234,7 +240,20 @@ function scheduleEvent(state) {
     return;
   }
   const morning = morningHours(state.config);
-  state.eventIn = Math.max(0.15, state.rand() * morning);
+  const latest = Math.max(0.15, morning - 0.2);
+  state.eventIn = 0.15 + state.rand() * (latest - 0.15);
+}
+
+/** Keep the emergency on the clock. A skipped half hour must not push it past noon. */
+function advanceEvent(state, simHours) {
+  if (state.eventIn == null) return;
+  state.eventIn -= simHours;
+  const untilNoon = simHoursUntilNoon(state);
+  if (state.eventIn > untilNoon) state.eventIn = untilNoon;
+  if (state.eventIn <= 0.0001) {
+    state.eventIn = null;
+    if (state.dayLeft > 0) spawnEvent(state);
+  }
 }
 
 function spawnEvent(state) {
@@ -508,15 +527,21 @@ export function takeBreak(state, kind) {
   const closed = state.dayLeft <= 0;
   if (closed) {
     state.dayLeft = 0;
+    state.eventIn = null;
     state.phase = state.day >= state.config.dayCount ? "results" : "shop";
     state.notice = state.phase === "results" ? "The break is here." : "The office is closed for the night.";
-  } else if (kind === "coffee") {
-    const stopped = state.tasks.some((task) => hasTag(task, "coffeeStop"));
-    state.notice = stopped
-      ? "Coffee break. The machine is still down, so this pot will not come back on its own."
-      : "Coffee break. The pot is back to 50.";
   } else {
-    state.notice = "Beer break. Morale is up. Jobs take 1.5× until close.";
+    advanceEvent(state, spent / secondsPerGameHour(state.config));
+  }
+  if (!closed && !state.tasks.some((task) => task.holding)) {
+    if (kind === "coffee") {
+      const stopped = state.tasks.some((task) => hasTag(task, "coffeeStop"));
+      state.notice = stopped
+        ? "Coffee break. The machine is still down, so this pot will not come back on its own."
+        : "Coffee break. The pot is back to 50.";
+    } else {
+      state.notice = "Beer break. Morale is up. Jobs take 1.5× until close.";
+    }
   }
   touch(state);
   return { ok: true, spent, closed };
@@ -566,13 +591,7 @@ export function tick(state, dt) {
     if (task.patienceLeft <= 0) expireTask(state, uid);
   }
 
-  if (state.eventIn != null) {
-    state.eventIn -= dtHours;
-    if (state.eventIn <= 0) {
-      state.eventIn = null;
-      spawnEvent(state);
-    }
-  }
+  if (state.dayLeft > 0) advanceEvent(state, dtHours);
 
   const workCount = state.tray.filter((uid) => taskById(state, uid)?.kind === "work").length;
   if (workCount < state.config.trayLimit) {
