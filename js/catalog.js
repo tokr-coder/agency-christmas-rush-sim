@@ -7,24 +7,24 @@ export const STAFF = [
   { id: "jessica", name: "Jessica", role: "Gift Lead", specialties: ["Wrapping", "Designing", "Hammering"], hue: "#3f6b52" },
 ];
 
-/** Cryptic titles. The skill chips say how the toy is made. Durations are in
+/** Each card is a toy. The skill chips say how it is made. Durations are in
  *  game hours, about twice the old 16–28 second toys at the default 4-minute day. */
 export const WORK = [
-  { skill: "Wrapping", secondary: "Hammering", hours: 1.8, reward: 19, weight: 3, titles: ["Loose Bow", "Ribbon Tangle", "Bare Box", "Crooked Bow"] },
-  { skill: "Wrapping", secondary: "Designing", hours: 2, reward: 22, weight: 2, titles: ["Tag Weather", "Pattern Drift", "List Fog"] },
-  { skill: "Wrapping", secondary: "Carving", hours: 1.6, reward: 17, weight: 2, titles: ["Nameless Block", "Bow Missing", "Parcel Drift"] },
-  { skill: "Hammering", secondary: "Carving", hours: 2.4, reward: 28, weight: 2, titles: ["Wobbly Joint", "Nail Weather", "Loose Axle"] },
-  { skill: "Painting", secondary: "Hammering", hours: 2.1, reward: 24, weight: 2, titles: ["Dull Coat", "Brush Quiet", "Splatter Hush"] },
-  { skill: "Painting", secondary: "Wrapping", hours: 2.3, reward: 26, weight: 2, titles: ["Color Drift", "Speckled Bow", "Gloss Pile"] },
-  { skill: "Designing", secondary: "Painting", hours: 2, reward: 23, weight: 2, titles: ["Sketch Static", "Color Weather", "Motif Fog"] },
-  { skill: "Carving", secondary: "Designing", hours: 3.2, reward: 36, weight: 2, titles: ["Grain Knot", "Rocking Flicker", "Hollow Miss"] },
-  { skill: "Designing", secondary: "Carving", hours: 2.6, reward: 27, weight: 2, titles: ["Star Too Small", "Grain Argument", "Shape Mismatch"] },
-  { skill: "Painting", secondary: "Designing", hours: 2.2, reward: 25, weight: 2, titles: ["Edge Debt", "Shade Mismatch", "Brush Target"] },
-  { skill: "Hammering", secondary: "Carving", hours: 2.5, reward: 26, weight: 1, titles: ["Joint Smoke", "Peg Drift", "Bench Hum"] },
-  { skill: "Designing", secondary: "Wrapping", hours: 2.8, reward: 32, weight: 1, titles: ["North Star Drift", "Story Gap", "Card Weather"] },
-  { skill: "Carving", secondary: "Hammering", hours: 1.9, reward: 21, weight: 1, titles: ["Squeaky Wheel", "Unfinished Sled", "Quiet Runner"] },
-  { skill: "Wrapping", secondary: "Painting", hours: 1.7, reward: 18, weight: 2, titles: ["Bow Gap", "Ribbon Dust", "Count Frost"] },
-  { skill: "Hammering", secondary: "Wrapping", hours: 1.7, reward: 17, weight: 1, titles: ["Bench Tangle", "Shelf Weather", "Handover Knot"] },
+  { skill: "Wrapping", secondary: "Hammering", hours: 1.8, reward: 19, weight: 3, titles: ["Jack-in-the-Box", "Toy Drum", "Wind-up Robot", "Tin Soldier"] },
+  { skill: "Wrapping", secondary: "Designing", hours: 2, reward: 22, weight: 2, titles: ["Paper Dolls", "Sock Monkey", "Cloth Rabbit"] },
+  { skill: "Wrapping", secondary: "Carving", hours: 1.6, reward: 17, weight: 2, titles: ["Nutcracker", "Wooden Duck", "Jumping Jack"] },
+  { skill: "Hammering", secondary: "Carving", hours: 2.4, reward: 28, weight: 2, titles: ["Rocking Horse", "Toy Wagon", "Hobby Horse"] },
+  { skill: "Painting", secondary: "Hammering", hours: 2.1, reward: 24, weight: 2, titles: ["Toy Train", "Fire Engine", "Red Wagon"] },
+  { skill: "Painting", secondary: "Wrapping", hours: 2.3, reward: 26, weight: 2, titles: ["Teddy Bear", "Ballerina Doll", "Nesting Dolls"] },
+  { skill: "Designing", secondary: "Painting", hours: 2, reward: 23, weight: 2, titles: ["Kite", "Pinwheel", "Kaleidoscope"] },
+  { skill: "Carving", secondary: "Designing", hours: 3.2, reward: 36, weight: 2, titles: ["Carousel Horse", "Noah's Ark", "Toy Castle"] },
+  { skill: "Designing", secondary: "Carving", hours: 2.6, reward: 27, weight: 2, titles: ["Wooden Puzzle", "Building Blocks", "Toy Sailboat"] },
+  { skill: "Painting", secondary: "Designing", hours: 2.2, reward: 25, weight: 2, titles: ["Yo-Yo", "Spinning Top", "Marbles"] },
+  { skill: "Hammering", secondary: "Carving", hours: 2.5, reward: 26, weight: 1, titles: ["Music Box", "Toy Sled", "Toy Piano"] },
+  { skill: "Designing", secondary: "Wrapping", hours: 2.8, reward: 32, weight: 1, titles: ["Dollhouse", "Puppet Theater", "Toy Kitchen"] },
+  { skill: "Carving", secondary: "Hammering", hours: 1.9, reward: 21, weight: 1, titles: ["Toboggan", "Pull-Along Duck", "Wooden Sleigh"] },
+  { skill: "Wrapping", secondary: "Painting", hours: 1.7, reward: 18, weight: 2, titles: ["Rag Doll", "Stuffed Reindeer", "Plush Elf"] },
+  { skill: "Hammering", secondary: "Wrapping", hours: 1.7, reward: 17, weight: 1, titles: ["Xylophone", "Toy Toolbox", "Stacking Rings"] },
 ];
 
 export const EVENTS = [

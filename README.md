@@ -21,7 +21,7 @@ A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600
 ## How the workshop works
 
 - Drag a toy onto an elf. Drop it on their queue to choose the slot. Drag a queued pill to reorder it.
-- Titles are cryptic. The skill chips say how the toy is made: designing, painting, hammering, carving, wrapping. Matching a specialty finishes the work faster. The workshop does not highlight a match.
+- The card names the toy: a rocking horse, a jack-in-the-box, a teddy bear. The skill chips say how it is made: designing, painting, hammering, carving, wrapping. Matching a specialty finishes the work faster. The workshop does not highlight a match.
 - A toy expires if it sits in the tray.
 - Emergencies stop the workshop. A box names the problem in plain words and who can take it. The day waits until you send it. It takes that elf's bench immediately, pushing the toy they were already on back into the queue. Each one arrives at a random time before noon (the workshop runs 8:00–2:00). The day 11 emergency occupies both named elves.
 - The last three seconds of a day show a large 3, 2, 1 behind the workshop.
