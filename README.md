@@ -1,6 +1,6 @@
 # Santa's Workshop
 
-Twelve working days with the elves. Drag toys onto the benches, hold the line through workshop emergencies, and earn as many stars as the season will pay. The score is total stars. The Ignite mark stays in the corner.
+Twelve working days with the elves. Drag toys onto the benches, hold the line through workshop emergencies, and finish as many toys as the season will allow. The score is toys finished. Each toy also pays stars, and the shop spends those. The Ignite mark stays in the corner.
 
 ## Play
 
@@ -26,10 +26,10 @@ A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600
 - Emergencies stop the workshop. A box names the problem in plain words and who can take it. The day waits until you send it. It takes that elf's bench immediately, pushing the toy they were already on back into the queue. Each one arrives at a random time before noon (the workshop runs 8:00–2:00). The day 11 emergency occupies both named elves.
 - The last three seconds of a day show a large 3, 2, 1 behind the workshop.
 - Holding a toy against the top or bottom edge of the screen scrolls the roster.
-- Eggnog and cheer fall while elves are working, faster than a single cheap perk can cover. Each morning brings them back to at least a tired start if they bottomed out. At empty, every toy slows. The day 10 eggnog emergency stops eggnog from returning until it is handled.
-- An eggnog break, when eggnog is under 50, spends 30 minutes and sets eggnog to 50. A candy break spends 30 minutes, lifts cheer to 80, and toys take 1.5× until close.
+- Eggnog and cheer fall while elves are working, faster than a single cheap perk can cover. Each morning brings them back to at least a tired start if they bottomed out. Empty eggnog makes every toy take more than twice as long. Empty cheer makes a random elf stop and cry for 45 seconds, about every 30 seconds, until cheer returns. The day 10 eggnog emergency stops eggnog from returning until it is handled.
+- An eggnog break, when eggnog is under 50, spends 30 minutes and sets eggnog to 50. A candy break spends 30 minutes, lifts cheer to 80, stops the crying, and toys take 1.5× until close.
 - The shop opens after days 1 through 11. Perks and training spend stars. Training also takes hours at the start of the next morning, and that elf does not work until it ends. Day 12 goes straight to the score.
-- Spending stars does not lower the score. The score is every star earned.
+- The score is toys finished across the 12 days. Spending stars does not change it. A finished toy still counts when its stars are frozen.
 
 ## Roster
 

@@ -28,6 +28,8 @@ export function createGame(overrides = {}, seed = 1) {
     earnedToday: 0,
     coffee: 100,
     morale: 100,
+    /** Real seconds until the next cry while cheer is empty. */
+    cryIn: config.cryEverySeconds,
     /** Candy break leaves toys slower until the next morning. */
     beerSlow: false,
     tray: [],
@@ -44,6 +46,7 @@ export function createGame(overrides = {}, seed = 1) {
       trainSpan: 0,
       active: null,
       queue: [],
+      cryLeft: 0,
     })),
     perks: {},
     pendingPerks: {},
@@ -54,7 +57,7 @@ export function createGame(overrides = {}, seed = 1) {
     rev: 0,
     notice: "",
     rand: mulberry32(seed),
-    stats: { delivered: 0, expired: 0, events: 0 },
+    stats: { delivered: 0, deliveredToday: 0, expired: 0, events: 0 },
   };
 }
 
@@ -148,7 +151,7 @@ export function durationHours(state, staff, task) {
   if (hasTag(task, "platform") && staff.id === "brandon" && tier >= 3) hours *= 0.5;
   if ((hasTag(task, "finance") || hasTag(task, "domain")) && staff.id === "jessica" && tier >= 3) hours *= 0.5;
 
-  if (state.coffee <= 0 || state.morale <= 0) hours *= 2.35;
+  if (state.coffee < 0.5) hours *= 2.35;
   if (state.beerSlow) hours *= 1.5;
   return Math.max(0.35, hours);
 }
@@ -318,9 +321,12 @@ function beginDay(state, opening) {
   state.phase = "work";
   state.dayLeft = state.config.dayLengthSeconds;
   state.earnedToday = 0;
+  state.stats.deliveredToday = 0;
   state.coffee = clamp(Math.max(state.coffee, 62), 0, 100);
   state.morale = clamp(Math.max(state.morale, 62), 0, 100);
   state.beerSlow = false;
+  state.cryIn = state.config.cryEverySeconds;
+  for (const person of state.staff) person.cryLeft = 0;
   state.spawnIn = state.day === 1 ? 0.2 : 0.1;
   state.notice = state.day === 1 ? "Drag a toy onto an elf." : "";
   if (opening) spawnOpening(state);
@@ -390,7 +396,7 @@ function seize(state, person, uid) {
 }
 
 function promote(state, person) {
-  if (person.trainLeft > 0 || person.active || !person.queue.length) return;
+  if (person.trainLeft > 0 || person.cryLeft > 0 || person.active || !person.queue.length) return;
   person.active = person.queue.shift();
   state.coffee = clamp(state.coffee - 2, 0, 100);
   state.morale = clamp(state.morale - 1, 0, 100);
@@ -481,7 +487,8 @@ function finishTask(state, person, task) {
     state.earned += pay;
     state.earnedToday += pay;
     state.stats.delivered += 1;
-    state.notice = pay ? `${task.title} earned ${money(pay)}` : `${task.title} finished. Stars are frozen.`;
+    state.stats.deliveredToday += 1;
+    state.notice = pay ? `${task.title} finished. ${money(pay)}` : `${task.title} finished. Stars are frozen.`;
   } else {
     const siblings = state.tasks.filter((item) => item.group && item.group === task.group && item.uid !== task.uid);
     if (!siblings.length && task.eventDay && !state.clearedEvents.includes(task.eventDay)) {
@@ -523,6 +530,8 @@ export function takeBreak(state, kind) {
   } else {
     state.morale = Math.max(state.morale, 80);
     state.beerSlow = true;
+    state.cryIn = state.config.cryEverySeconds;
+    for (const person of state.staff) person.cryLeft = 0;
   }
   const closed = state.dayLeft <= 0;
   if (closed) {
@@ -547,6 +556,25 @@ export function takeBreak(state, kind) {
   return { ok: true, spent, closed };
 }
 
+/** Empty cheer starts a cry about every 30 seconds. Eggnog is the slowdown. */
+function advanceCrying(state, dt) {
+  if (state.morale >= 0.5) {
+    state.cryIn = state.config.cryEverySeconds;
+    return;
+  }
+  state.cryIn -= dt;
+  if (state.cryIn > 0) return;
+  const pool = state.staff.filter((person) => person.cryLeft <= 0 && person.trainLeft <= 0);
+  if (pool.length) {
+    const person = pool[Math.floor(state.rand() * pool.length)];
+    person.cryLeft = state.config.crySpanSeconds;
+    state.notice = `${person.name} is crying.`;
+    touch(state);
+  }
+  const every = state.config.cryEverySeconds;
+  state.cryIn = every * (0.8 + state.rand() * 0.4);
+}
+
 export function tick(state, dt) {
   if (state.phase !== "work" || dt <= 0) return;
   if (state.tasks.some((task) => task.holding)) return;
@@ -558,6 +586,11 @@ export function tick(state, dt) {
   let workers = 0;
   let moraleWorkers = 0;
   for (const person of state.staff) {
+    if (person.cryLeft > 0) {
+      person.cryLeft = Math.max(0, person.cryLeft - dt);
+      if (person.cryLeft > 0) continue;
+      touch(state);
+    }
     if (person.trainLeft > 0) {
       person.trainLeft = Math.max(0, person.trainLeft - dtHours);
       if (person.trainLeft > 0) continue;
@@ -583,6 +616,7 @@ export function tick(state, dt) {
   const regen = coffeeStopped ? 0 : mods.coffeeRegen;
   state.coffee = clamp(state.coffee + (regen - workers * mods.coffeeDrain) * dtHours, 0, 100);
   state.morale = clamp(state.morale + (mods.moraleRegen - moraleWorkers * mods.moraleDrain) * dtHours, 0, 100);
+  advanceCrying(state, dt);
 
   for (const uid of [...state.tray]) {
     const task = taskById(state, uid);

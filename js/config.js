@@ -21,6 +21,10 @@ export const CONFIG = {
   patienceHours: [1.7, 2.25],
   tutorialSpawnHours: 0.28,
   tutorialPatienceHours: 3.6,
+  /** Real seconds between cries while cheer is empty. */
+  cryEverySeconds: 30,
+  /** How long one elf cries, in real seconds. */
+  crySpanSeconds: 45,
 };
 
 export function loadConfig(search = "") {

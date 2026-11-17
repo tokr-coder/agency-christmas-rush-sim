@@ -382,6 +382,8 @@ button, summary, input { font: inherit; }
   box-shadow: 0 8px 18px rgba(140, 50, 40, 0.06);
 }
 
+.person.is-crying { box-shadow: inset 0 0 0 2px var(--cran); }
+
 .person.is-over { outline: 2px solid var(--logo); outline-offset: 1px; }
 
 .person.is-bad { outline: 2px solid #e07a86; outline-offset: 1px; }
@@ -412,6 +414,8 @@ button, summary, input { font: inherit; }
 .active .track { margin-top: 4px; }
 
 .active.is-idle { color: #8a7568; }
+
+.active.is-crying { color: var(--cran); font-weight: 700; }
 
 .active.is-training { color: var(--logo); }
 

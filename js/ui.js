@@ -218,7 +218,7 @@ function renderBoard() {
   const tasks = trayTasks();
   trayEl.innerHTML = tasks.length ? tasks.map(trayCard).join("") : `<p class="empty">No toys waiting.</p>`;
   rosterEl.innerHTML = state.staff.map((person) => `
-    <article class="person" data-staff="${person.id}" style="--hue:${person.hue}">
+    <article class="person${person.cryLeft > 0 ? " is-crying" : ""}" data-staff="${person.id}" style="--hue:${person.hue}">
       <div class="who">
         ${avatarMarkup(person.id)}
         <div>
@@ -240,7 +240,7 @@ function renderShop() {
       <p class="kicker">Night ${state.day}</p>
       <h2>The workshop is closed</h2>
       <p class="sheet-cash">${money(state.cash)}</p>
-      <p class="sheet-sub">Today ${money(state.earnedToday)} · Stars ${money(state.earned)}</p>
+      <p class="sheet-sub">Toys today ${state.stats.deliveredToday} · Toys ${state.stats.delivered}</p>
       ${openEvents ? `<p class="warn">${openEvents} emergency still open.</p>` : ""}
       <h3>Workshop</h3>
       <div class="offers">${PERKS.map(perkCard).join("")}</div>
@@ -257,7 +257,7 @@ function renderTitle() {
       <p class="kicker">Twelve days</p>
       <h2>Santa's Workshop</h2>
       <p class="edition">Elves, toys, and the sleigh</p>
-      <p>Twelve working days. Drag the toys. The score is the stars the workshop earns.</p>
+      <p>Twelve working days. Drag the toys. The score is toys finished. Each toy pays stars for the shop.</p>
       <button type="button" class="go" data-action="start">Open the workshop</button>
       <details>
         <summary>Workshop rules</summary>
@@ -265,8 +265,9 @@ function renderTitle() {
           <li>Drag a toy onto an elf. Drop it on their queue to pick the slot, or drag a pill to reorder.</li>
           <li>The chips say how the toy is made. A matching skill finishes faster. Nothing on the card lights up to tell you who that is.</li>
           <li>An emergency stops the workshop. Read it, then send it to the elf it names. It takes their bench, even mid-toy.</li>
-          <li>At night, buy workshop perks or training. Training spends stars and hours the next morning.</li>
-          <li>After day 12 the score is every star earned. Top 10 can leave a name. Email stays off the board.</li>
+          <li>Out of eggnog, every toy takes more than twice as long. Out of cheer, an elf starts crying about every 30 seconds and that bench stops until the tears pass.</li>
+          <li>At night, buy workshop perks or training. Training spends stars and hours the next morning. Stars are not the score.</li>
+          <li>After day 12 the score is toys finished. Top 10 can leave a name. Email stays off the board.</li>
         </ol>
       </details>
     </div>
@@ -274,16 +275,16 @@ function renderTitle() {
 }
 
 function renderResults() {
-  const score = Math.round(state.earned);
+  const score = state.stats.delivered;
   overlayEl.innerHTML = `
     <div class="modal">
       <p class="kicker">Workshop</p>
       <h2>The sleigh has left</h2>
-      <p class="score">${money(score)}</p>
-      <p class="sheet-sub">Stars earned across 12 days</p>
+      <p class="score">${score}</p>
+      <p class="sheet-sub">Toys finished across 12 days</p>
       <ul class="stats">
-        <li>${state.stats.delivered} delivered</li>
-        <li>${state.stats.expired} expired</li>
+        <li>${money(state.earned)} stars</li>
+        <li>${state.stats.expired} left the tray</li>
         <li>${state.stats.events} emergencies</li>
       </ul>
       <form id="score-form">
@@ -308,8 +309,8 @@ function paint() {
   clock.classList.toggle("is-late", state.phase === "work" && hours < 1 && !breakAnim);
   clock.classList.toggle("is-break", Boolean(breakAnim));
   document.querySelector(".bar")?.classList.toggle("is-break", Boolean(breakAnim));
-  document.getElementById("cash").textContent = money(state.cash);
-  document.getElementById("earned").textContent = money(state.earned);
+  document.getElementById("toys").textContent = String(state.stats.delivered);
+  document.getElementById("stars").textContent = money(state.cash);
   document.getElementById("day-fill").style.width = `${clamp((1 - dayLeft / state.config.dayLengthSeconds) * 100, 0, 100)}%`;
   const countEl = document.getElementById("countdown");
   const count = !breakAnim && state.phase === "work" && state.dayLeft > 0 && state.dayLeft <= 3 ? Math.ceil(state.dayLeft) : 0;
@@ -360,8 +361,8 @@ function setMeter(name, value) {
 
 function meterHint(name, value) {
   if (Math.round(value) <= 0) {
-    const label = name === "coffee" ? "eggnog" : "cheer";
-    return `Out of ${label}. Every toy takes more than twice as long.`;
+    if (name === "coffee") return "Out of eggnog. Every toy takes more than twice as long.";
+    return "Out of cheer. An elf starts crying about every 30 seconds.";
   }
   if (name === "morale" && (state.beerSlow || breakAnim?.kind === "beer")) {
     return "Candy in the workshop. Toys take 1.5× until close.";
@@ -541,9 +542,11 @@ function openBreakAsk(kind) {
       <p class="kicker">${beer ? "Candy break" : "Eggnog break"}</p>
       <h2 id="ask-title">${beer ? "Candy Time" : "The nog is back"}</h2>
       <p>${beer
-        ? "Spends 30 minutes and lifts cheer to 80. The workshop pauses. Nobody works through those 30 minutes. Toys take 1.5× until close. That stays after cheer is back, and it stacks with an empty eggnog meter. The slowdown ends in the morning."
+        ? "Spends 30 minutes and lifts cheer to 80. The workshop pauses. Nobody works through those 30 minutes. Toys take 1.5× until close. That stays after cheer is back, and it stacks with empty eggnog. The slowdown ends in the morning."
         : "Spends 30 minutes and sets eggnog to 50. The workshop pauses. Nobody works through those 30 minutes."}</p>
-      <p>At 0, every toy takes more than twice as long. Either meter empty is enough. Next morning, a meter under 62 comes back to 62. It does not refill to full.</p>
+      <p>${beer
+        ? "At 0, an elf starts crying about every 30 seconds and stops work until the tears pass. Next morning, cheer under 62 comes back to 62. It does not refill to full."
+        : "At 0, every toy takes more than twice as long. Next morning, eggnog under 62 comes back to 62. It does not refill to full."}</p>
       <div class="ask-actions">
         <button type="button" class="ask-cancel" data-action="break-cancel">Cancel</button>
         <button type="button" class="ask-ok" data-action="break-ok">OK</button>
@@ -810,6 +813,9 @@ function trayCard(task) {
 
 function activeMarkup(person) {
   const task = person.active ? taskByUid(person.active) : null;
+  if (person.cryLeft > 0) {
+    return `<div class="active is-crying"><span>Crying</span>${task ? `<small>${esc(task.title)} waits</small>` : ""}</div>`;
+  }
   if (person.trainLeft > 0) {
     const span = person.trainSpan || person.trainLeft;
     const done = clamp(1 - person.trainLeft / span, 0, 1);
@@ -1042,7 +1048,7 @@ async function submitScore(form) {
       body: JSON.stringify({
         name: form.name.value.trim(),
         email: form.email.value.trim(),
-        score: Math.round(state.earned),
+        score: state.stats.delivered,
       }),
     });
     const data = await response.json();
@@ -1066,7 +1072,7 @@ async function submitScore(form) {
 function paintBoard(rows) {
   const list = document.getElementById("board-list");
   if (!list) return;
-  list.innerHTML = rows.map((row) => `<li><span>${esc(row.name)}</span><span>${money(row.score)}</span></li>`).join("");
+  list.innerHTML = rows.map((row) => `<li><span>${esc(row.name)}</span><span>${Math.round(Number(row.score) || 0)}</span></li>`).join("");
 }
 
 function mountAtmosphere() {
