@@ -18,19 +18,11 @@ import {
 } from "./engine.js";
 
 const SKILL_COLOR = {
-  Strategy: "#6e2430",
-  Social: "#b4532a",
-  MOU: "#8a6232",
-  AdWords: "#1f6b4a",
-  Display: "#1d4e89",
-  Sales: "#7a3e6d",
-  "Web Dev": "#0f6e6e",
-  Design: "#a33b45",
-  Tech: "#3d4c7c",
-  "FB Ads": "#254e8a",
-  UI: "#b26b2c",
-  Invoicing: "#3f6b52",
-  Ops: "#5c5346",
+  Designing: "#c23b4a",
+  Painting: "#1f8a4c",
+  Hammering: "#c47a22",
+  Carving: "#8a4b2a",
+  Wrapping: "#c4376a",
 };
 
 /** Set a path to swap a Lottie token for an approved photo. */
@@ -224,9 +216,9 @@ function renderBoard() {
   document.getElementById("day-label").textContent = `Day ${state.day}/12`;
   document.getElementById("notice").textContent = state.notice || "";
   const tasks = trayTasks();
-  trayEl.innerHTML = tasks.length ? tasks.map(trayCard).join("") : `<p class="empty">Tray is clear.</p>`;
+  trayEl.innerHTML = tasks.length ? tasks.map(trayCard).join("") : `<p class="empty">No toys waiting.</p>`;
   rosterEl.innerHTML = state.staff.map((person) => `
-    <article class="person" data-staff="${person.id}" style="--hue:${person.hue}">
+    <article class="person${person.cryLeft > 0 ? " is-crying" : ""}" data-staff="${person.id}" style="--hue:${person.hue}">
       <div class="who">
         ${avatarMarkup(person.id)}
         <div>
@@ -246,11 +238,11 @@ function renderShop() {
   shopEl.innerHTML = `
     <div class="sheet-inner">
       <p class="kicker">Night ${state.day}</p>
-      <h2>The office is closed</h2>
+      <h2>The workshop is closed</h2>
       <p class="sheet-cash">${money(state.cash)}</p>
-      <p class="sheet-sub">Today ${money(state.earnedToday)} · Earned ${money(state.earned)}</p>
+      <p class="sheet-sub">Toys today ${state.stats.deliveredToday} · Toys ${state.stats.delivered}</p>
       ${openEvents ? `<p class="warn">${openEvents} emergency still open.</p>` : ""}
-      <h3>Office</h3>
+      <h3>Workshop</h3>
       <div class="offers">${PERKS.map(perkCard).join("")}</div>
       <h3>Training</h3>
       <div class="offers">${state.staff.map(skillCard).join("")}</div>
@@ -262,19 +254,20 @@ function renderShop() {
 function renderTitle() {
   overlayEl.innerHTML = `
     <div class="modal">
-      <p class="kicker">Ignite</p>
-      <h2>The Q4 Rush</h2>
-      <p class="edition">Holiday Edition</p>
-      <p>Twelve working days. Drag the briefs. The score is what the office earns.</p>
-      <button type="button" class="go" data-action="start">Start the office</button>
+      <p class="kicker">Twelve days</p>
+      <h2>Santa's Workshop</h2>
+      <p class="edition">Elves, toys, and the sleigh</p>
+      <p>Twelve working days. Drag the toys. The score is toys finished. Each toy pays stars for the shop.</p>
+      <button type="button" class="go" data-action="start">Open the workshop</button>
       <details>
-        <summary>Office rules</summary>
+        <summary>Workshop rules</summary>
         <ol>
-          <li>Drag a brief onto someone. Drop it on their queue to pick the slot, or drag a pill to reorder.</li>
-          <li>The chips are the brief. A specialty match finishes faster. Nothing on the card lights up to tell you who that is.</li>
-          <li>An emergency stops the office. Read it, then send it to the person it names. It takes their desk, even mid-task.</li>
-          <li>At night, buy office perks or training. Training spends cash and hours the next morning.</li>
-          <li>After day 12 the score is every dollar earned. Top 10 can leave a name. Email stays off the board.</li>
+          <li>Drag a toy onto an elf. Drop it on their queue to pick the slot, or drag a pill to reorder.</li>
+          <li>The chips say how the toy is made. A matching skill finishes faster. Nothing on the card lights up to tell you who that is.</li>
+          <li>An emergency stops the workshop. Read it, then send it to the elf it names. It takes their bench, even mid-toy.</li>
+          <li>Out of eggnog, every toy takes more than twice as long. Out of cheer, an elf starts crying about every 30 seconds and that bench stops until the tears pass.</li>
+          <li>At night, buy workshop perks or training. Training spends stars and hours the next morning. Stars are not the score.</li>
+          <li>After day 12 the score is toys finished. Top 10 can leave a name. Email stays off the board.</li>
         </ol>
       </details>
     </div>
@@ -282,16 +275,16 @@ function renderTitle() {
 }
 
 function renderResults() {
-  const score = Math.round(state.earned);
+  const score = state.stats.delivered;
   overlayEl.innerHTML = `
     <div class="modal">
-      <p class="kicker">Ignite</p>
-      <h2>Christmas break</h2>
-      <p class="score">${money(score)}</p>
-      <p class="sheet-sub">Earned across 12 days</p>
+      <p class="kicker">Workshop</p>
+      <h2>The sleigh has left</h2>
+      <p class="score">${score}</p>
+      <p class="sheet-sub">Toys finished across 12 days</p>
       <ul class="stats">
-        <li>${state.stats.delivered} delivered</li>
-        <li>${state.stats.expired} expired</li>
+        <li>${money(state.earned)} stars</li>
+        <li>${state.stats.expired} left the tray</li>
         <li>${state.stats.events} emergencies</li>
       </ul>
       <form id="score-form">
@@ -302,7 +295,7 @@ function renderResults() {
       </form>
       <p id="board-note"></p>
       <ol id="board-list"></ol>
-      <button type="button" class="go" data-action="again">Run it again</button>
+      <button type="button" class="go" data-action="again">Open the workshop again</button>
     </div>
   `;
   loadBoard(score);
@@ -316,8 +309,8 @@ function paint() {
   clock.classList.toggle("is-late", state.phase === "work" && hours < 1 && !breakAnim);
   clock.classList.toggle("is-break", Boolean(breakAnim));
   document.querySelector(".bar")?.classList.toggle("is-break", Boolean(breakAnim));
-  document.getElementById("cash").textContent = money(state.cash);
-  document.getElementById("earned").textContent = money(state.earned);
+  document.getElementById("toys").textContent = String(state.stats.delivered);
+  document.getElementById("stars").textContent = money(state.cash);
   document.getElementById("day-fill").style.width = `${clamp((1 - dayLeft / state.config.dayLengthSeconds) * 100, 0, 100)}%`;
   const countEl = document.getElementById("countdown");
   const count = !breakAnim && state.phase === "work" && state.dayLeft > 0 && state.dayLeft <= 3 ? Math.ceil(state.dayLeft) : 0;
@@ -368,11 +361,11 @@ function setMeter(name, value) {
 
 function meterHint(name, value) {
   if (Math.round(value) <= 0) {
-    const label = name === "coffee" ? "coffee" : "morale";
-    return `Out of ${label}. Every job takes more than twice as long.`;
+    if (name === "coffee") return "Out of eggnog. Every toy takes more than twice as long.";
+    return "Out of cheer. An elf starts crying about every 30 seconds.";
   }
   if (name === "morale" && (state.beerSlow || breakAnim?.kind === "beer")) {
-    return "Beer in the office. Jobs take 1.5× until close.";
+    return "Candy in the workshop. Toys take 1.5× until close.";
   }
   return "";
 }
@@ -390,13 +383,13 @@ function paintBreakControls() {
   coffeeBtn.title = stopped
     ? "Deal with the emergency first."
     : state.coffee >= 50
-      ? "Coffee is already above 50."
-      : "Spend 30 minutes. Coffee returns to 50.";
+      ? "Eggnog is already above 50."
+      : "Spend 30 minutes. Eggnog returns to 50.";
   beerBtn.title = stopped
     ? "Deal with the emergency first."
     : state.morale >= 80
-      ? "Morale is already at 80."
-      : "Spend 30 minutes. Morale to 80. Jobs take 1.5× until close.";
+      ? "Cheer is already at 80."
+      : "Spend 30 minutes. Cheer to 80. Toys take 1.5× until close.";
 }
 
 function onClick(event) {
@@ -546,12 +539,14 @@ function openBreakAsk(kind) {
   el.hidden = false;
   el.innerHTML = `
     <div class="break-card is-ask ${beer ? "is-beer" : ""}" role="dialog" aria-modal="true" aria-labelledby="ask-title">
-      <p class="kicker">${beer ? "Beer break" : "Coffee break"}</p>
-      <h2 id="ask-title">${beer ? "Beer Fridge Time" : "The pot is back"}</h2>
+      <p class="kicker">${beer ? "Candy break" : "Eggnog break"}</p>
+      <h2 id="ask-title">${beer ? "Candy Time" : "The nog is back"}</h2>
       <p>${beer
-        ? "Spends 30 minutes and lifts morale to 80. The office pauses. Nobody works through those 30 minutes. Jobs take 1.5× until close. That stays after morale is back, and it stacks with an empty coffee meter. The slowdown ends in the morning."
-        : "Spends 30 minutes and sets coffee to 50. The office pauses. Nobody works through those 30 minutes."}</p>
-      <p>At 0, every job takes more than twice as long. Either meter empty is enough. Next morning, a meter under 62 comes back to 62. It does not refill to full.</p>
+        ? "Spends 30 minutes and lifts cheer to 80. The workshop pauses. Nobody works through those 30 minutes. Toys take 1.5× until close. That stays after cheer is back, and it stacks with empty eggnog. The slowdown ends in the morning."
+        : "Spends 30 minutes and sets eggnog to 50. The workshop pauses. Nobody works through those 30 minutes."}</p>
+      <p>${beer
+        ? "At 0, an elf starts crying about every 30 seconds and stops work until the tears pass. Next morning, cheer under 62 comes back to 62. It does not refill to full."
+        : "At 0, every toy takes more than twice as long. Next morning, eggnog under 62 comes back to 62. It does not refill to full."}</p>
       <div class="ask-actions">
         <button type="button" class="ask-cancel" data-action="break-cancel">Cancel</button>
         <button type="button" class="ask-ok" data-action="break-ok">OK</button>
@@ -620,11 +615,11 @@ function showBreak(kind) {
   el.innerHTML = `
     <div class="break-card ${beer ? "is-beer" : ""}" role="dialog" aria-modal="true" aria-labelledby="break-title">
       <div class="break-art" aria-hidden="true">${beer ? beerArt() : coffeeArt()}</div>
-      <p class="kicker">${beer ? "Beer break" : "Coffee break"}</p>
-      <h2 id="break-title">${beer ? "Beer Fridge Time" : "The pot is back"}</h2>
+      <p class="kicker">${beer ? "Candy break" : "Eggnog break"}</p>
+      <h2 id="break-title">${beer ? "Candy Time" : "The nog is back"}</h2>
       <p>${beer
-        ? "Half an hour off the clock. Morale to 80. Jobs take 1.5× until close."
-        : "Half an hour off the clock. Coffee returns to 50."}</p>
+        ? "Half an hour off the clock. Cheer to 80. Toys take 1.5× until close."
+        : "Half an hour off the clock. Eggnog returns to 50."}</p>
     </div>
   `;
 }
@@ -651,15 +646,8 @@ function coffeeArt() {
 
 function beerArt() {
   return `
-    <div class="break-stage is-beer">
-      <div class="saucer"></div>
-      <div class="bowl">
-        <div class="brew">
-          <div class="head"></div>
-          <div class="bubbles"><i></i><i></i><i></i></div>
-        </div>
-      </div>
-      <div class="handle"></div>
+    <div class="break-stage is-candy">
+      <div class="cane" aria-hidden="true"></div>
     </div>
   `;
 }
@@ -688,7 +676,7 @@ function renderAlert() {
       <p class="kicker">Emergency</p>
       <h2 id="alert-title">${esc(task.title)}</h2>
       <p>${esc(task.detail || "")}</p>
-      <p class="meta">${hourLabel(task.hours)} on their desk. The office waits.</p>
+      <p class="meta">${hourLabel(task.hours)} on their bench. The workshop waits.</p>
       <div class="alert-actions">${buttons}</div>
     </div>
   `;
@@ -825,6 +813,9 @@ function trayCard(task) {
 
 function activeMarkup(person) {
   const task = person.active ? taskByUid(person.active) : null;
+  if (person.cryLeft > 0) {
+    return `<div class="active is-crying"><span>Crying</span>${task ? `<small>${esc(task.title)} waits</small>` : ""}</div>`;
+  }
   if (person.trainLeft > 0) {
     const span = person.trainSpan || person.trainLeft;
     const done = clamp(1 - person.trainLeft / span, 0, 1);
@@ -884,7 +875,7 @@ function skillCard(person) {
       <p class="pips">${[1, 2, 3].map((tier) => `<i class="${tier <= person.trained ? "on" : tier === person.pendingTier ? "wait" : ""}"></i>`).join("")}</p>
       <p class="skill-name">${esc(waiting ? current.name : offer ? offer.name : "Mastered")}</p>
       <p>${esc(waiting ? "In the morning" : offer ? offer.blurb : "Every tier is trained.")}</p>
-      ${offer ? `<p class="cost">${money(offer.cost)} · ${hourLabel(offer.downtime)} out of the office tomorrow</p>` : ""}
+      ${offer ? `<p class="cost">${money(offer.cost)} · ${hourLabel(offer.downtime)} out of the workshop tomorrow</p>` : ""}
     </div>
     ${offer ? `<button type="button" data-action="skill" data-staff="${person.id}" ${afford ? "" : "disabled"}>Train</button>` : ""}
   </article>`;
@@ -1057,7 +1048,7 @@ async function submitScore(form) {
       body: JSON.stringify({
         name: form.name.value.trim(),
         email: form.email.value.trim(),
-        score: Math.round(state.earned),
+        score: state.stats.delivered,
       }),
     });
     const data = await response.json();
@@ -1081,11 +1072,11 @@ async function submitScore(form) {
 function paintBoard(rows) {
   const list = document.getElementById("board-list");
   if (!list) return;
-  list.innerHTML = rows.map((row) => `<li><span>${esc(row.name)}</span><span>${money(row.score)}</span></li>`).join("");
+  list.innerHTML = rows.map((row) => `<li><span>${esc(row.name)}</span><span>${Math.round(Number(row.score) || 0)}</span></li>`).join("");
 }
 
 function mountAtmosphere() {
-  const bulbs = ["#e6b45a", "#f2f2f2", "#9d3140", "#7dcea0"];
+  const bulbs = ["#e23d3d", "#fff", "#1f8a4c", "#f2c14b"];
   document.getElementById("lights").innerHTML = Array.from({ length: 18 }, (_, index) => {
     return `<i style="--i:${index};--bulb:${bulbs[index % bulbs.length]}"></i>`;
   }).join("");

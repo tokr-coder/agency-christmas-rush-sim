@@ -28,7 +28,9 @@ export function createGame(overrides = {}, seed = 1) {
     earnedToday: 0,
     coffee: 100,
     morale: 100,
-    /** Beer break leaves jobs slower until the next morning. */
+    /** Real seconds until the next cry while cheer is empty. */
+    cryIn: config.cryEverySeconds,
+    /** Candy break leaves toys slower until the next morning. */
     beerSlow: false,
     tray: [],
     tasks: [],
@@ -44,6 +46,7 @@ export function createGame(overrides = {}, seed = 1) {
       trainSpan: 0,
       active: null,
       queue: [],
+      cryLeft: 0,
     })),
     perks: {},
     pendingPerks: {},
@@ -54,12 +57,12 @@ export function createGame(overrides = {}, seed = 1) {
     rev: 0,
     notice: "",
     rand: mulberry32(seed),
-    stats: { delivered: 0, expired: 0, events: 0 },
+    stats: { delivered: 0, deliveredToday: 0, expired: 0, events: 0 },
   };
 }
 
 export function money(n) {
-  return `$${Math.round(n).toLocaleString("en-US")}`;
+  return `★${Math.round(n).toLocaleString("en-US")}`;
 }
 
 export function hoursLeft(state) {
@@ -82,11 +85,11 @@ function liveTasks(state) {
 export function skillsOf(staff) {
   const skills = staff.specialties.slice();
   const tier = staff.trained;
-  if (staff.id === "brandon" && tier >= 3) skills.push("FB Ads");
-  if (staff.id === "tomas" && tier >= 3) skills.push("UI");
-  if (staff.id === "sean" && tier >= 3) skills.push("Social");
-  if (staff.id === "kajal" && tier >= 3) skills.push("Web Dev");
-  if (staff.id === "jessica" && tier >= 3) skills.push("Strategy");
+  if (staff.id === "brandon" && tier >= 3) skills.push("Wrapping");
+  if (staff.id === "tomas" && tier >= 3) skills.push("Painting");
+  if (staff.id === "sean" && tier >= 3) skills.push("Designing");
+  if (staff.id === "kajal" && tier >= 3) skills.push("Hammering");
+  if (staff.id === "jessica" && tier >= 3) skills.push("Carving");
   return skills;
 }
 
@@ -135,36 +138,36 @@ export function durationHours(state, staff, task) {
   else if (primary && secondary) hours *= 0.9;
 
   const tier = staff.trained;
-  if (staff.id === "coree" && tier >= 1 && task.skill === "MOU") hours *= 0.7;
-  if (staff.id === "coree" && tier >= 3 && task.skill === "Social") hours *= 0.75;
-  if (staff.id === "brandon" && tier >= 1 && (task.skill === "AdWords" || task.skill === "Display")) hours *= 0.75;
-  if (staff.id === "tomas" && tier >= 2 && task.skill === "Web Dev") hours *= 0.65;
-  if (staff.id === "sean" && tier >= 2 && ["FB Ads", "Display", "AdWords"].includes(task.skill)) hours /= 1.2;
-  if (staff.id === "kajal" && tier >= 1 && (task.skill === "Design" || task.skill === "UI")) hours *= 0.7;
-  if (staff.id === "jessica" && tier >= 1 && task.skill === "Invoicing") hours *= 0.75;
+  if (staff.id === "coree" && tier >= 1 && task.skill === "Wrapping") hours *= 0.7;
+  if (staff.id === "coree" && tier >= 3 && task.skill === "Painting") hours *= 0.75;
+  if (staff.id === "brandon" && tier >= 1 && (task.skill === "Hammering" || task.skill === "Painting")) hours *= 0.75;
+  if (staff.id === "tomas" && tier >= 2 && task.skill === "Carving") hours *= 0.65;
+  if (staff.id === "sean" && tier >= 2 && ["Painting", "Hammering", "Wrapping"].includes(task.skill)) hours /= 1.2;
+  if (staff.id === "kajal" && tier >= 1 && (task.skill === "Designing" || task.skill === "Carving")) hours *= 0.7;
+  if (staff.id === "jessica" && tier >= 1 && task.skill === "Wrapping") hours *= 0.75;
 
   if (hasTag(task, "server") && staff.id === "tomas" && tier >= 1) hours *= 0.58;
   if ((hasTag(task, "scope") || hasTag(task, "pr")) && staff.id === "coree" && tier >= 3) hours *= 0.5;
   if (hasTag(task, "platform") && staff.id === "brandon" && tier >= 3) hours *= 0.5;
   if ((hasTag(task, "finance") || hasTag(task, "domain")) && staff.id === "jessica" && tier >= 3) hours *= 0.5;
 
-  if (state.coffee <= 0 || state.morale <= 0) hours *= 2.35;
+  if (state.coffee < 0.5) hours *= 2.35;
   if (state.beerSlow) hours *= 1.5;
   return Math.max(0.35, hours);
 }
 
 function payoutFor(state, staff, task) {
   const frozen = liveTasks(state).some((item) => hasTag(item, "freeze"));
-  if (frozen && (task.skill === "MOU" || task.skill === "Invoicing" || task.secondary === "MOU" || task.secondary === "Invoicing")) {
+  if (frozen && (task.skill === "Wrapping" || task.secondary === "Wrapping")) {
     return 0;
   }
   let pay = task.reward;
   const tier = staff.trained;
-  if (staff.id === "coree" && tier >= 2 && (task.skill === "Strategy" || task.secondary === "Strategy")) pay *= 1.25;
-  if (staff.id === "brandon" && tier >= 2 && (task.skill === "Sales" || task.secondary === "Sales")) pay *= 1.3;
-  if (staff.id === "sean" && tier >= 1 && (task.skill === "FB Ads" || task.skill === "Display")) pay *= 1.2;
-  if (staff.id === "kajal" && tier >= 2 && (task.skill === "Design" || task.skill === "Social" || task.secondary === "Design" || task.secondary === "Social")) pay *= 1.25;
-  if (staff.id === "jessica" && tier >= 1 && task.skill === "Invoicing") pay *= 1.2;
+  if (staff.id === "coree" && tier >= 2 && (task.skill === "Designing" || task.secondary === "Designing")) pay *= 1.25;
+  if (staff.id === "brandon" && tier >= 2 && (task.skill === "Carving" || task.secondary === "Carving")) pay *= 1.3;
+  if (staff.id === "sean" && tier >= 1 && (task.skill === "Painting" || task.skill === "Hammering")) pay *= 1.2;
+  if (staff.id === "kajal" && tier >= 2 && (task.skill === "Designing" || task.skill === "Wrapping" || task.secondary === "Designing" || task.secondary === "Wrapping")) pay *= 1.25;
+  if (staff.id === "jessica" && tier >= 1 && task.skill === "Wrapping") pay *= 1.2;
   pay *= 1 + modifiers(state).reward;
   return Math.round(pay);
 }
@@ -318,11 +321,14 @@ function beginDay(state, opening) {
   state.phase = "work";
   state.dayLeft = state.config.dayLengthSeconds;
   state.earnedToday = 0;
+  state.stats.deliveredToday = 0;
   state.coffee = clamp(Math.max(state.coffee, 62), 0, 100);
   state.morale = clamp(Math.max(state.morale, 62), 0, 100);
   state.beerSlow = false;
+  state.cryIn = state.config.cryEverySeconds;
+  for (const person of state.staff) person.cryLeft = 0;
   state.spawnIn = state.day === 1 ? 0.2 : 0.1;
-  state.notice = state.day === 1 ? "Drag work onto a person." : "";
+  state.notice = state.day === 1 ? "Drag a toy onto an elf." : "";
   if (opening) spawnOpening(state);
   scheduleEvent(state);
   for (const person of state.staff) promote(state, person);
@@ -390,7 +396,7 @@ function seize(state, person, uid) {
 }
 
 function promote(state, person) {
-  if (person.trainLeft > 0 || person.active || !person.queue.length) return;
+  if (person.trainLeft > 0 || person.cryLeft > 0 || person.active || !person.queue.length) return;
   person.active = person.queue.shift();
   state.coffee = clamp(state.coffee - 2, 0, 100);
   state.morale = clamp(state.morale - 1, 0, 100);
@@ -427,7 +433,7 @@ export function assign(state, taskUid, staffId, insertAt = "end") {
       const target = state.staff.find((member) => member.id === id);
       seize(state, target, copy.uid);
     }
-    state.notice = `${task.title} took both desks.`;
+    state.notice = `${task.title} took both benches.`;
     touch(state);
     return { ok: true };
   }
@@ -438,7 +444,7 @@ export function assign(state, taskUid, staffId, insertAt = "end") {
     seize(state, person, task.uid);
     state.notice = person.trainLeft > 0
       ? `${person.name} is training. ${task.title} is next.`
-      : `${task.title} took over ${person.name}'s desk.`;
+      : `${task.title} took ${person.name}'s bench.`;
     touch(state);
     return { ok: true };
   }
@@ -481,7 +487,8 @@ function finishTask(state, person, task) {
     state.earned += pay;
     state.earnedToday += pay;
     state.stats.delivered += 1;
-    state.notice = pay ? `${task.title} cleared ${money(pay)}` : `${task.title} cleared. Payouts are frozen.`;
+    state.stats.deliveredToday += 1;
+    state.notice = pay ? `${task.title} finished. ${money(pay)}` : `${task.title} finished. Stars are frozen.`;
   } else {
     const siblings = state.tasks.filter((item) => item.group && item.group === task.group && item.uid !== task.uid);
     if (!siblings.length && task.eventDay && !state.clearedEvents.includes(task.eventDay)) {
@@ -501,11 +508,11 @@ function expireTask(state, uid) {
   state.tasks = state.tasks.filter((task) => task.uid !== uid);
   state.stats.expired += 1;
   state.morale = clamp(state.morale - 5, 0, 100);
-  state.notice = "A brief left the tray.";
+  state.notice = "A toy left the tray.";
   touch(state);
 }
 
-/** Shown-clock cost of a coffee or beer break: half an hour, five tenths. */
+/** Shown-clock cost of an eggnog or candy break: half an hour, five tenths. */
 export function breakCostSeconds(config) {
   const shown = 0.5;
   const simHours = shown * (config.gameHoursPerDay / config.shownHoursPerDay);
@@ -515,7 +522,7 @@ export function breakCostSeconds(config) {
 export function takeBreak(state, kind) {
   if (state.phase !== "work") return { ok: false, reason: "closed" };
   if (kind !== "coffee" && kind !== "beer") return { ok: false, reason: "missing" };
-  if (state.tasks.some((task) => task.holding)) return { ok: false, reason: "The office is stopped." };
+  if (state.tasks.some((task) => task.holding)) return { ok: false, reason: "The workshop is stopped." };
   const spent = Math.min(state.dayLeft, breakCostSeconds(state.config));
   state.dayLeft -= spent;
   if (kind === "coffee") {
@@ -523,13 +530,15 @@ export function takeBreak(state, kind) {
   } else {
     state.morale = Math.max(state.morale, 80);
     state.beerSlow = true;
+    state.cryIn = state.config.cryEverySeconds;
+    for (const person of state.staff) person.cryLeft = 0;
   }
   const closed = state.dayLeft <= 0;
   if (closed) {
     state.dayLeft = 0;
     state.eventIn = null;
     state.phase = state.day >= state.config.dayCount ? "results" : "shop";
-    state.notice = state.phase === "results" ? "The break is here." : "The office is closed for the night.";
+    state.notice = state.phase === "results" ? "The sleigh is gone." : "The workshop is closed for the night.";
   } else {
     advanceEvent(state, spent / secondsPerGameHour(state.config));
   }
@@ -537,14 +546,33 @@ export function takeBreak(state, kind) {
     if (kind === "coffee") {
       const stopped = state.tasks.some((task) => hasTag(task, "coffeeStop"));
       state.notice = stopped
-        ? "Coffee break. The machine is still down, so this pot will not come back on its own."
-        : "Coffee break. The pot is back to 50.";
+        ? "Eggnog break. The pot is still down, so this nog will not come back on its own."
+        : "Eggnog break. The pot is back to 50.";
     } else {
-      state.notice = "Beer break. Morale is up. Jobs take 1.5× until close.";
+      state.notice = "Candy break. Cheer is up. Toys take 1.5× until close.";
     }
   }
   touch(state);
   return { ok: true, spent, closed };
+}
+
+/** Empty cheer starts a cry about every 30 seconds. Eggnog is the slowdown. */
+function advanceCrying(state, dt) {
+  if (state.morale >= 0.5) {
+    state.cryIn = state.config.cryEverySeconds;
+    return;
+  }
+  state.cryIn -= dt;
+  if (state.cryIn > 0) return;
+  const pool = state.staff.filter((person) => person.cryLeft <= 0 && person.trainLeft <= 0);
+  if (pool.length) {
+    const person = pool[Math.floor(state.rand() * pool.length)];
+    person.cryLeft = state.config.crySpanSeconds;
+    state.notice = `${person.name} is crying.`;
+    touch(state);
+  }
+  const every = state.config.cryEverySeconds;
+  state.cryIn = every * (0.8 + state.rand() * 0.4);
 }
 
 export function tick(state, dt) {
@@ -558,6 +586,11 @@ export function tick(state, dt) {
   let workers = 0;
   let moraleWorkers = 0;
   for (const person of state.staff) {
+    if (person.cryLeft > 0) {
+      person.cryLeft = Math.max(0, person.cryLeft - dt);
+      if (person.cryLeft > 0) continue;
+      touch(state);
+    }
     if (person.trainLeft > 0) {
       person.trainLeft = Math.max(0, person.trainLeft - dtHours);
       if (person.trainLeft > 0) continue;
@@ -583,6 +616,7 @@ export function tick(state, dt) {
   const regen = coffeeStopped ? 0 : mods.coffeeRegen;
   state.coffee = clamp(state.coffee + (regen - workers * mods.coffeeDrain) * dtHours, 0, 100);
   state.morale = clamp(state.morale + (mods.moraleRegen - moraleWorkers * mods.moraleDrain) * dtHours, 0, 100);
+  advanceCrying(state, dt);
 
   for (const uid of [...state.tray]) {
     const task = taskById(state, uid);
@@ -612,7 +646,7 @@ export function tick(state, dt) {
   if (state.dayLeft <= 0) {
     state.dayLeft = 0;
     state.phase = state.day >= state.config.dayCount ? "results" : "shop";
-    state.notice = state.phase === "results" ? "The break is here." : "The office is closed for the night.";
+    state.notice = state.phase === "results" ? "The sleigh is gone." : "The workshop is closed for the night.";
     touch(state);
   }
 }
