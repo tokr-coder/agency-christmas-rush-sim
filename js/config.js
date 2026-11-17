@@ -4,7 +4,7 @@
  *  hours, so a job keeps the same real minutes when the label changes.
  *  shownHoursPerDay is what the clock and labels read. 6 shown hours across
  *  the same 12 simulation hours means every label is half as long.
- *  The office opens at 8:00 and closes at 14:00, so noon is 4 shown hours in.
+ *  The workshop opens at 8:00 and closes at 14:00, so noon is 4 shown hours in.
  *  A local URL can rehearse a shorter day: ?daySeconds=20
  */
 
@@ -15,9 +15,9 @@ export const CONFIG = {
   shownHoursPerDay: 6,
   trayLimit: 3,
   queueLimit: 3,
-  /** Game hours between new briefs once the tray has room. */
+  /** Game hours between new toys once the tray has room. */
   spawnHours: 0.16,
-  /** How long a brief sits in the tray, in game hours, before it walks. */
+  /** How long a toy sits in the tray, in game hours, before it walks. */
   patienceHours: [1.7, 2.25],
   tutorialSpawnHours: 0.28,
   tutorialPatienceHours: 3.6,
