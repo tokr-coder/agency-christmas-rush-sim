@@ -1,83 +1,54 @@
-export const STAFF = [
-  { id: "coree", name: "Coree-Ann", role: "Head Elf", specialties: ["Designing", "Wrapping", "Painting"], hue: "#6e2430" },
-  { id: "brandon", name: "Brandon", role: "Builder", specialties: ["Hammering", "Painting", "Carving"], hue: "#1f4a38" },
-  { id: "tomas", name: "Tomas", role: "Woodwright", specialties: ["Carving", "Designing", "Hammering"], hue: "#243246" },
-  { id: "sean", name: "Sean", role: "Painter", specialties: ["Painting", "Hammering", "Wrapping"], hue: "#1d3f6e" },
-  { id: "kajal", name: "Kajal", role: "Toymaker", specialties: ["Designing", "Wrapping", "Carving"], hue: "#b26b2c" },
-  { id: "jessica", name: "Jessica", role: "Gift Lead", specialties: ["Wrapping", "Designing", "Hammering"], hue: "#3f6b52" },
+/** Toy icons, elf portraits, the 12-day ramp, and the night shop. */
+
+export const TOYS = [
+  { id: "horse", color: "#c47a22", svg: `<path fill="currentColor" d="M4 24c2 3 22 3 24 0-6 2-18 2-24 0z"/><path fill="currentColor" d="M7 19c1-4 6-6 10-4l5-5 3 2-4 4c3 1 4 4 2 6H8z"/><circle cx="24" cy="10" r="3.2" fill="currentColor"/>` },
+  { id: "jack", color: "#e23d3d", svg: `<rect x="7" y="14" width="18" height="14" rx="2" fill="currentColor"/><circle cx="16" cy="10" r="5" fill="currentColor"/><rect x="14.2" y="4" width="3.6" height="4" rx="1" fill="currentColor"/>` },
+  { id: "bear", color: "#8a5a3b", svg: `<circle cx="8" cy="9" r="4" fill="currentColor"/><circle cx="24" cy="9" r="4" fill="currentColor"/><circle cx="16" cy="18" r="9" fill="currentColor"/>` },
+  { id: "drum", color: "#1f8a4c", svg: `<ellipse cx="16" cy="9" rx="10" ry="4" fill="currentColor"/><path fill="currentColor" d="M6 9h20v12c0 2.2-4.5 4-10 4s-10-1.8-10-4V9z"/><path d="M8 12c6 3 10 3 16 0" fill="none" stroke="#fffaf4" stroke-width="1.6"/>` },
+  { id: "train", color: "#1d3f6e", svg: `<rect x="3" y="16" width="16" height="8" rx="2" fill="currentColor"/><rect x="16" y="11" width="10" height="9" rx="1.5" fill="currentColor"/><rect x="23" y="6" width="3" height="6" fill="currentColor"/><circle cx="9" cy="25" r="2.6" fill="currentColor"/><circle cx="20" cy="25" r="2.6" fill="currentColor"/>` },
+  { id: "duck", color: "#e0a03a", svg: `<ellipse cx="13" cy="21" rx="9" ry="6" fill="currentColor"/><circle cx="22" cy="14" r="5" fill="currentColor"/><path fill="currentColor" d="M26 13h6l-4 4z"/>` },
+  { id: "kite", color: "#c4376a", svg: `<polygon points="16,2 29,16 16,30 3,16" fill="currentColor"/><path d="M16 30c2 0 3 2 2 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>` },
+  { id: "doll", color: "#6e2430", svg: `<circle cx="16" cy="8" r="5" fill="currentColor"/><path fill="currentColor" d="M7 29 16 14l9 15z"/>` },
 ];
 
-/** Each card is a toy. The skill chips say how it is made. Durations are in
- *  game hours, about twice the old 16–28 second toys at the default 4-minute day. */
-export const WORK = [
-  { skill: "Wrapping", secondary: "Hammering", hours: 1.8, reward: 19, weight: 3, titles: ["Jack-in-the-Box", "Toy Drum", "Wind-up Robot", "Tin Soldier"] },
-  { skill: "Wrapping", secondary: "Designing", hours: 2, reward: 22, weight: 2, titles: ["Paper Dolls", "Sock Monkey", "Cloth Rabbit"] },
-  { skill: "Wrapping", secondary: "Carving", hours: 1.6, reward: 17, weight: 2, titles: ["Nutcracker", "Wooden Duck", "Jumping Jack"] },
-  { skill: "Hammering", secondary: "Carving", hours: 2.4, reward: 28, weight: 2, titles: ["Rocking Horse", "Toy Wagon", "Hobby Horse"] },
-  { skill: "Painting", secondary: "Hammering", hours: 2.1, reward: 24, weight: 2, titles: ["Toy Train", "Fire Engine", "Red Wagon"] },
-  { skill: "Painting", secondary: "Wrapping", hours: 2.3, reward: 26, weight: 2, titles: ["Teddy Bear", "Ballerina Doll", "Nesting Dolls"] },
-  { skill: "Designing", secondary: "Painting", hours: 2, reward: 23, weight: 2, titles: ["Kite", "Pinwheel", "Kaleidoscope"] },
-  { skill: "Carving", secondary: "Designing", hours: 3.2, reward: 36, weight: 2, titles: ["Carousel Horse", "Noah's Ark", "Toy Castle"] },
-  { skill: "Designing", secondary: "Carving", hours: 2.6, reward: 27, weight: 2, titles: ["Wooden Puzzle", "Building Blocks", "Toy Sailboat"] },
-  { skill: "Painting", secondary: "Designing", hours: 2.2, reward: 25, weight: 2, titles: ["Yo-Yo", "Spinning Top", "Marbles"] },
-  { skill: "Hammering", secondary: "Carving", hours: 2.5, reward: 26, weight: 1, titles: ["Music Box", "Toy Sled", "Toy Piano"] },
-  { skill: "Designing", secondary: "Wrapping", hours: 2.8, reward: 32, weight: 1, titles: ["Dollhouse", "Puppet Theater", "Toy Kitchen"] },
-  { skill: "Carving", secondary: "Hammering", hours: 1.9, reward: 21, weight: 1, titles: ["Toboggan", "Pull-Along Duck", "Wooden Sleigh"] },
-  { skill: "Wrapping", secondary: "Painting", hours: 1.7, reward: 18, weight: 2, titles: ["Rag Doll", "Stuffed Reindeer", "Plush Elf"] },
-  { skill: "Hammering", secondary: "Wrapping", hours: 1.7, reward: 17, weight: 1, titles: ["Xylophone", "Toy Toolbox", "Stacking Rings"] },
+export const ELVES = [
+  { id: "coree", hue: "#6e2430" },
+  { id: "brandon", hue: "#1f4a38" },
+  { id: "tomas", hue: "#243246" },
+  { id: "sean", hue: "#1d3f6e" },
+  { id: "kajal", hue: "#b26b2c" },
+  { id: "jessica", hue: "#3f6b52" },
 ];
 
-export const EVENTS = [
-  { day: 2, title: "List Weather", detail: "Santa rewrote the nice list after the toys were already started.", allows: ["coree"], hours: 2, tags: ["scope"], lottie: "siren" },
-  { day: 3, title: "Sleigh Dark", detail: "The sleigh rig went dark under the Christmas load. Nothing leaves until it is repaired.", allows: ["tomas"], hours: 6, tags: ["server"], lottie: "server" },
-  { day: 4, title: "Name Dropped", detail: "A child's name tag came off the big sack. Someone has to stitch it back before that toy stays behind.", allows: ["jessica", "tomas"], hours: 4, tags: ["domain"], lottie: "siren" },
-  { day: 5, title: "Paint Flood", detail: "An open tap is flooding the paint bench and spoiling the whole morning's toys.", allows: ["brandon", "sean"], hours: 3, tags: ["adFatigue"], lottie: "siren" },
-  { day: 6, title: "Festive Scale", detail: "Nothing goes in the sack until the star is much bigger and more festive.", allows: ["kajal"], hours: 3, tags: ["design"], lottie: "siren" },
-  { day: 7, title: "List Freeze", detail: "The nice list is frozen. Wrapped toys earn no stars until the page is cleared.", allows: ["jessica", "coree"], hours: 4, tags: ["finance", "freeze"], lottie: "siren" },
-  { day: 8, title: "Letter Fire", detail: "A stack of letters caught the wrong kind of attention. The children need an answer.", allows: ["sean", "coree"], hours: 4, tags: ["pr"], lottie: "siren" },
-  { day: 9, title: "Paint Locked", detail: "The paint room is locked. Someone has to get it open before the bright toys stall.", allows: ["brandon", "sean"], hours: 5, tags: ["platform", "adFatigue"], lottie: "server" },
-  { day: 10, title: "Nog Down", detail: "The eggnog pot is dead. Eggnog will not come back until it is repaired.", allows: ["jessica"], hours: 3, tags: ["coffeeStop"], lottie: "cup" },
-  { day: 11, title: "Dawn Toy", detail: "A child asked for a new toy by morning. Tomas and Kajal both have to build it.", allows: ["tomas", "kajal"], hours: 6, tags: ["rush"], joint: true, lottie: "siren" },
-  { day: 12, title: "Sack Flood", detail: "The sack is overflowing in the last hours before the sleigh leaves.", allows: ["tomas", "brandon"], hours: 4, tags: ["server"], lottie: "server" },
+/** types: how many toy icons exist. list: icons each elf must gather.
+ *  stations: benches wanted if a reserve elf is free. spawn: seconds between toys.
+ *  event.at is how far through the day the disruption starts. */
+export const DAYS = [
+  { types: 4, list: 2, stations: 2, spawn: 2.7 },
+  { types: 4, list: 2, stations: 2, spawn: 2.45 },
+  { types: 5, list: 3, stations: 2, spawn: 2.25 },
+  { types: 5, list: 3, stations: 2, spawn: 2.1 },
+  { types: 6, list: 3, stations: 3, spawn: 2.0 },
+  { types: 6, list: 3, stations: 3, spawn: 1.85 },
+  { types: 6, list: 3, stations: 3, spawn: 1.75, event: { at: 0.42, kind: "rush", seconds: 14 } },
+  { types: 7, list: 4, stations: 3, spawn: 1.65 },
+  { types: 7, list: 4, stations: 4, spawn: 1.55 },
+  { types: 8, list: 4, stations: 4, spawn: 1.5, event: { at: 0.48, kind: "jam", seconds: 12, station: 0 } },
+  { types: 8, list: 4, stations: 4, spawn: 1.4 },
+  { types: 8, list: 4, stations: 4, spawn: 1.3, event: { at: 0.4, kind: "rush", seconds: 16 } },
 ];
 
-export const SKILL_TREES = {
-  coree: [
-    { name: "List Keeping", cost: 60, downtime: 4, blurb: "Wrapping 30% faster" },
-    { name: "Gift Planning", cost: 190, downtime: 8, blurb: "Designing pays +25%" },
-    { name: "Crisis Carols", cost: 450, downtime: 11, blurb: "List and letter emergencies 50% faster. Painting speeds up." },
-  ],
-  brandon: [
-    { name: "Sure Strikes", cost: 75, downtime: 4, blurb: "Hammering and Painting 25% faster" },
-    { name: "Fine Carving", cost: 210, downtime: 8, blurb: "Carving pays +30%" },
-    { name: "Ribbon Cross-Over", cost: 475, downtime: 11, blurb: "Learns Wrapping. Paint-room lockouts resolve 50% faster." },
-  ],
-  tomas: [
-    { name: "Sleigh Hardening", cost: 90, downtime: 5, blurb: "Sleigh emergencies resolve much faster" },
-    { name: "Deep Carving", cost: 225, downtime: 8, blurb: "Carving 35% faster" },
-    { name: "Paint Bench", cost: 525, downtime: 11, blurb: "Learns Painting" },
-  ],
-  sean: [
-    { name: "Bright Coats", cost: 60, downtime: 4, blurb: "Painting and Hammering pay +20%" },
-    { name: "Steady Brush", cost: 175, downtime: 7, blurb: "Painting, hammering, and wrapping 20% faster" },
-    { name: "Pattern Lead", cost: 425, downtime: 10, blurb: "Learns Designing. No cheer drain on paint crises." },
-  ],
-  kajal: [
-    { name: "Quick Patterns", cost: 70, downtime: 4, blurb: "Designing and Carving 30% faster" },
-    { name: "Ribbon Suite", cost: 200, downtime: 8, blurb: "Designing and Wrapping pay +25%" },
-    { name: "Bench Lead", cost: 450, downtime: 11, blurb: "Learns Hammering" },
-  ],
-  jessica: [
-    { name: "Swift Bows", cost: 75, downtime: 4, blurb: "Wrapping pays +20% and finishes faster" },
-    { name: "Bench Balance", cost: 190, downtime: 8, blurb: "The workshop sips 20% less eggnog and cheer" },
-    { name: "Workshop Director", cost: 475, downtime: 10, blurb: "Star and name-tag crises 50% faster. Learns Carving." },
-  ],
-};
-
-export const PERKS = [
-  { id: "espresso", name: "Eggnog Kettle", blurb: "Eggnog returns faster", max: 3, costs: [80, 170, 350], effect: "coffeeRegen", values: [3.2, 3.4, 4] },
-  { id: "cookies", name: "Jingle Corner", blurb: "Cheer returns faster", max: 3, costs: [60, 130, 260], effect: "moraleRegen", values: [2.2, 2.2, 2.6] },
-  { id: "mute", name: "Soft Bells", blurb: "Toys sip less eggnog", max: 1, costs: [110], effect: "coffeeDrain", values: [0.22] },
-  { id: "pods", name: "Cozy Nooks", blurb: "Toys sip less cheer", max: 1, costs: [120], effect: "moraleDrain", values: [0.22] },
-  { id: "warroom", name: "Wrapping Room", blurb: "Every toy pays more stars", max: 2, costs: [200, 400], effect: "reward", values: [0.12, 0.13] },
+export const UPGRADES = [
+  { id: "queue", max: 3, costs: [70, 130, 210] },
+  { id: "track", max: 2, costs: [90, 170] },
+  { id: "slots", max: 2, costs: [110, 190] },
+  { id: "cheer", max: 3, costs: [80, 150, 260] },
+  { id: "station", max: 1, costs: [240] },
 ];
+
+export const TRAIN_COST = 160;
+
+export function toySvg(id) {
+  const toy = TOYS.find((item) => item.id === id) || TOYS[0];
+  return `<span class="icon" style="color:${toy.color}"><svg viewBox="0 0 32 32" aria-hidden="true">${toy.svg}</svg></span>`;
+}

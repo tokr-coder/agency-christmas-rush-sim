@@ -3,80 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Santa's Workshop. Twelve working days. Drag the toys, train the elves, and earn stars before the sleigh leaves." />
+    <meta name="description" content="Santa's Workshop. Twelve days on the toy conveyor. The highest earnings win." />
     <meta name="theme-color" content="#fff6ee" />
     <title>Santa's Workshop</title>
     <link rel="icon" href="img/ignite.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
     <div class="snow" id="snow" aria-hidden="true"></div>
+    <h1 class="sr">Santa's Workshop</h1>
     <div class="app" id="app">
       <header class="bar">
         <div class="lights" id="lights" aria-hidden="true"></div>
-        <h1 class="sr">Santa's Workshop</h1>
-        <div class="brand-row">
+        <div class="top">
           <img class="mark" src="img/ignite.png" alt="" />
-          <div class="dayblock">
-            <p class="kicker" id="day-label">Day 1/12</p>
-            <p class="clock" id="clock">6.0h</p>
-          </div>
-          <div class="moneyblock">
-            <p class="cash" id="toys">0</p>
-            <p class="earned">Toys · Stars <strong id="stars">★0</strong></p>
-          </div>
-          <details class="help">
-            <summary aria-label="How to play">?</summary>
-            <div>
-              <p>Drag a toy onto an elf. Drop it on the queue to pick the slot. Drag a pill to reorder.</p>
-              <p>Chips say how the toy is made. An emergency stops the workshop until you send it to the elf it names.</p>
-              <p>Eggnog and cheer fall while elves work. Starting a toy costs 2 eggnog and 1 cheer. A toy that leaves the tray costs 5 cheer.</p>
-              <p>Out of eggnog, every toy takes more than twice as long. Out of cheer, an elf starts crying about every 30 seconds and stops work until the tears pass. Next morning, a meter under 62 comes back to 62. It does not refill to full.</p>
-              <p>Eggnog break, when eggnog is under 50, spends 30 minutes and sets eggnog to 50. Candy break spends 30 minutes, lifts cheer to 80, and toys take 1.5× as long until close. That 1.5× stays after cheer is back, and it stacks with empty eggnog. The slowdown ends in the morning. A break pauses the workshop. Nobody works through those 30 minutes.</p>
-              <p>The score is toys finished. Each toy also pays stars, and the shop spends stars, not toys. Training costs stars and hours the next morning. On day 10, Nog Down stops eggnog from returning until Jessica repairs the pot. An eggnog break still fills the pot to 50.</p>
-            </div>
-          </details>
+          <p class="day" id="day">1</p>
+          <p class="cash" id="cash">0</p>
+          <div class="pips" id="pips"></div>
+          <button type="button" class="ask" data-action="help" aria-label="How to play">?</button>
         </div>
-        <div class="meters">
-          <div class="meter" id="coffee-meter">
-            <div class="meter-label"><span>Eggnog</span><span id="coffee-value">100</span></div>
-            <div class="meter-bar">
-              <div class="track"><span id="coffee-fill"></span></div>
-              <button type="button" class="refill" id="coffee-break" data-action="break-ask" data-kind="coffee" hidden aria-label="Eggnog break">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v5.2A4.2 4.2 0 0 1 11.8 18H9.2A4.2 4.2 0 0 1 5 13.8V9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 11h2.1a2.2 2.2 0 0 1 0 4.4H16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 5.2c.3 1 .1 1.5.5 2.3M12 5.2c.3 1 .1 1.5.5 2.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-              </button>
-            </div>
-            <p class="meter-hint" id="coffee-hint"></p>
-          </div>
-          <div class="meter morale" id="morale-meter">
-            <div class="meter-label"><span>Cheer</span><span id="morale-value">100</span></div>
-            <div class="meter-bar">
-              <div class="track"><span id="morale-fill"></span></div>
-              <button type="button" class="refill is-beer" id="beer-break" data-action="break-ask" data-kind="beer" hidden aria-label="Candy break">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 4.2a3.6 3.6 0 0 0-3.6 3.6V20" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M10.4 9.1h3.4M10.1 12.3h3.6M9.8 15.5h3.8" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
-              </button>
-            </div>
-            <p class="meter-hint" id="morale-hint"></p>
-          </div>
+        <div class="cheer" aria-label="Cheer">
+          <span id="cheer-fill"></span>
+          <em id="cheer-num">100</em>
         </div>
-        <div class="daytrack" aria-hidden="true"><span id="day-fill"></span></div>
-        <p class="notice" id="notice" aria-live="polite"></p>
+        <div class="daybar" aria-hidden="true"><span id="day-fill"></span></div>
       </header>
-      <section class="tray-wrap" aria-label="Incoming toys">
-        <div class="tray" id="tray"></div>
-      </section>
-      <section class="roster" id="roster" aria-label="Elves"></section>
-      <div class="break-pop" id="break-ask" hidden></div>
-      <div class="break-pop" id="break-pop" hidden></div>
+      <div class="floor" id="floor" hidden>
+        <svg class="wires" id="wires"></svg>
+        <div class="riders" id="riders"></div>
+        <div class="lane" id="lane" aria-label="Incoming toys"></div>
+        <div class="stage" id="stage">
+          <div class="ring" id="ring"></div>
+          <div class="belt" id="belt"></div>
+        </div>
+        <div class="stations" id="stations"></div>
+      </div>
+      <div class="help" id="help" hidden>
+        <p>Drag the belt until an empty cup meets the line of toys.</p>
+        <p>Tap a toy on a red spur to send it down. Tap a toy at the elf to send it back. If the far end is full, it comes back the other way.</p>
+        <p>Match the icons. A line that cannot take another toy costs cheer. The next elf steps in. No elves left ends the run.</p>
+      </div>
     </div>
     <div class="sheet" id="shop" hidden></div>
     <div class="overlay" id="overlay"></div>
-    <div class="countdown" id="countdown" hidden aria-hidden="true"></div>
-    <div class="alert" id="alert" hidden></div>
-    <div class="ghost" id="ghost" hidden></div>
     <script src="vendor/lottie.min.js"></script>
     <script type="module" src="js/ui.js"></script>
   </body>
