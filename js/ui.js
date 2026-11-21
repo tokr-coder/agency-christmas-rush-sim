@@ -31,8 +31,6 @@ const anims = new Set();
 
 const dayEl = document.getElementById("day");
 const cashEl = document.getElementById("cash");
-const cheerFill = document.getElementById("cheer-fill");
-const cheerNum = document.getElementById("cheer-num");
 const dayFill = document.getElementById("day-fill");
 const floorEl = document.getElementById("floor");
 const helpEl = document.getElementById("help");
@@ -70,16 +68,18 @@ function onPointerDown(event) {
     return;
   }
   if (!event.target.closest("#stage")) return;
-  const center = beltCenter();
+  const box = metrics();
+  if (!box) return;
   drag = {
     id: event.pointerId,
-    cx: center.cx,
-    cy: center.cy,
-    angle: Math.atan2(event.clientY - center.cy, event.clientX - center.cx),
     spin: state.spin,
     x: event.clientX,
     y: event.clientY,
     moved: false,
+    slotPx: box.perim / state.belt.length,
+    straight: box.straight,
+    cx: box.fx + box.floor.left,
+    cy: box.fy + box.floor.top,
     belt: event.target.closest("[data-belt]") ? Number(event.target.closest("[data-belt]").dataset.belt) : null,
   };
   state.dragging = true;
@@ -88,13 +88,19 @@ function onPointerDown(event) {
 
 function onPointerMove(event) {
   if (!drag || event.pointerId !== drag.id) return;
-  const angle = Math.atan2(event.clientY - drag.cy, event.clientX - drag.cx);
-  let delta = angle - drag.angle;
-  if (delta > Math.PI) delta -= Math.PI * 2;
-  if (delta < -Math.PI) delta += Math.PI * 2;
-  drag.angle = angle;
-  drag.spin += (delta / (Math.PI * 2)) * state.belt.length;
-  if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 8) drag.moved = true;
+  const dx = event.clientX - drag.x;
+  const dy = event.clientY - drag.y;
+  drag.x = event.clientX;
+  drag.y = event.clientY;
+  drag.travel = (drag.travel || 0) + Math.hypot(dx, dy);
+  if (drag.travel > 8) drag.moved = true;
+  const onRight = event.clientX > drag.cx + drag.straight / 2;
+  const onLeft = event.clientX < drag.cx - drag.straight / 2;
+  let along = 0;
+  if (onRight) along = dy;
+  else if (onLeft) along = -dy;
+  else along = event.clientY > drag.cy ? -dx : dx;
+  drag.spin += along / drag.slotPx;
   if (drag.moved) state.spin = drag.spin;
 }
 
@@ -185,14 +191,15 @@ function syncSiren() {
 
 function syncLane() {
   const lane = document.getElementById("lane");
-  const full = state.queue.length >= queueMax(state);
-  const sig = `${state.queue.map((toy) => toy.uid).join(".")}:${full}:${state.rushLeft > 0}`;
+  const max = queueMax(state);
+  const full = state.queue.length >= max;
+  const sig = `${max}:${state.queue.map((toy) => toy.uid).join(".")}:${full}:${state.rushLeft > 0}`;
   lane.classList.toggle("is-full", full);
   lane.classList.toggle("is-rush", state.rushLeft > 0);
   if (lane.dataset.sig === sig) return;
   lane.dataset.sig = sig;
-  const waiting = [...state.queue].reverse();
-  lane.innerHTML = waiting.map((toy) => `<span class="qtoy">${toySvg(toy.type)}</span>`).join("");
+  const cells = Array.from({ length: max }, (_, index) => state.queue[index] || null);
+  lane.innerHTML = `<i class="queue-mouth"></i>${cells.map((toy) => `<span class="qslot">${toy ? toySvg(toy.type) : ""}</span>`).join("")}`;
 }
 
 function syncBelt() {
@@ -250,6 +257,7 @@ function stationHtml(station, index) {
   const jammed = state.jam && state.jam.station === index;
   return `<article class="station${absent ? " is-absent" : ""}${jammed ? " is-jam" : ""}" data-sig="${stationSig(station, index)}" style="--hue:${elf.hue}">
     <div class="elf"><div class="avatar-lottie" data-lottie="${elf.id}"></div></div>
+    <div class="mini-cheer" aria-label="Cheer"><span data-cheer="${index}"></span></div>
     <div class="list">${station.list.map((id) => toySvg(id)).join("")}</div>
     <div class="holds">${station.slots.map((toy, slot) => `<button type="button" class="hold" data-held data-station="${index}" data-slot="${slot}" aria-label="${toy ? "Toy" : "Empty"}">${toy ? toySvg(toy.type) : ""}</button>`).join("")}</div>
   </article>`;
@@ -307,30 +315,35 @@ function syncOverlay() {
 function paint() {
   dayEl.textContent = String(Math.max(state.day, 1));
   cashEl.textContent = String(state.earned);
-  const cheerRatio = state.cheerMax ? state.cheer / state.cheerMax : 0;
-  cheerFill.style.width = `${Math.max(0, Math.min(1, cheerRatio)) * 100}%`;
-  cheerNum.textContent = String(Math.max(0, Math.round(state.cheer)));
   const span = state.config.dayLengthSeconds || 1;
   const gone = state.phase === "play" ? 1 - state.dayLeft / span : state.phase === "title" ? 0 : 1;
   dayFill.style.width = `${Math.max(0, Math.min(1, gone)) * 100}%`;
+  document.querySelectorAll("[data-cheer]").forEach((bar) => {
+    const station = state.stations[Number(bar.dataset.cheer)];
+    const ratio = station && state.cheerMax ? station.cheer / state.cheerMax : 0;
+    bar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+  });
   if (floorEl.hidden) return;
   const box = metrics();
   if (!box) return;
-  const ring = document.getElementById("ring");
-  const diameter = box.r * 2 + 36;
-  ring.style.width = `${diameter}px`;
-  ring.style.height = `${diameter}px`;
-  ring.style.left = `${box.sx - diameter / 2}px`;
-  ring.style.top = `${box.sy - diameter / 2}px`;
+  const rail = document.getElementById("rail");
+  const railPath = stadiumPath(box);
+  if (rail.dataset.sig !== railPath) {
+    rail.dataset.sig = railPath;
+    rail.innerHTML = `<path d="${railPath}" fill="none" stroke="#e7c49a" stroke-width="46" stroke-linecap="round"/><path d="${railPath}" fill="none" stroke="#c6863a" stroke-width="18" stroke-linecap="round"/>`;
+  }
   const n = state.belt.length;
   const ports = portWorlds(state.stations.length);
+  const busy = new Set(state.tracks.filter(Boolean).map((track) => track.world));
   for (const cup of document.querySelectorAll(".cup")) {
     const world = worldOf(Number(cup.dataset.belt), state.spin, n);
-    const angle = -Math.PI / 2 + (world / n) * Math.PI * 2;
-    cup.style.left = `${box.sx + Math.cos(angle) * box.r}px`;
-    cup.style.top = `${box.sy + Math.sin(angle) * box.r}px`;
+    const nearest = mod(Math.round(world), n);
+    const at = pathPoint(world / n, box);
+    cup.style.left = `${at.x}px`;
+    cup.style.top = `${at.y}px`;
     cup.classList.toggle("is-intake", circ(world, 0, n) < 0.34);
     cup.classList.toggle("is-port", ports.some((port) => circ(world, port, n) < 0.34));
+    cup.classList.toggle("is-busy", busy.has(nearest));
   }
   paintWires(box);
 }
@@ -340,19 +353,36 @@ function paintWires(box) {
   const riders = document.getElementById("riders");
   const cards = [...document.querySelectorAll(".station")];
   const n = state.belt.length;
-  const ends = [];
+  const spurs = [];
   let markup = "";
+  const intake = pathPoint(0, box);
+  const mouth = document.querySelector(".queue-mouth")?.getBoundingClientRect();
+  if (mouth && mouth.width) {
+    const x1 = mouth.left - box.floor.left + mouth.width / 2;
+    const y1 = mouth.bottom - box.floor.top;
+    const x2 = box.stageLeft + intake.x;
+    const y2 = box.stageTop + intake.y;
+    markup += `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} C ${x1.toFixed(1)} ${(y1 + 28).toFixed(1)}, ${x2.toFixed(1)} ${(y2 - 36).toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="#e23d3d" stroke-width="6" stroke-linecap="round"/>`;
+  }
   portWorlds(state.stations.length).forEach((world, index) => {
-    const angle = -Math.PI / 2 + (world / n) * Math.PI * 2;
-    const x1 = box.fx + Math.cos(angle) * (box.r + 22);
-    const y1 = box.fy + Math.sin(angle) * (box.r + 22);
+    const from = pathPoint(world / n, box);
+    const x1 = box.stageLeft + from.x;
+    const y1 = box.stageTop + from.y;
     const card = cards[index]?.getBoundingClientRect();
     if (!card) return;
     const x2 = card.left - box.floor.left + card.width / 2;
-    const y2 = card.top - box.floor.top + 4;
+    const y2 = card.top - box.floor.top + 2;
+    const bend = Math.max(-56, Math.min(56, (x2 - x1) * 0.45));
+    const spur = {
+      x1, y1, x2, y2,
+      c1x: x1 + bend,
+      c1y: y1 + 42,
+      c2x: x2 - bend * 0.2,
+      c2y: y1 + (y2 - y1) * 0.62,
+    };
     const jammed = state.jam && state.jam.station === index;
-    markup += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${jammed ? "#e23d3d" : "#c47a22"}" stroke-width="${jammed ? 8 : 6}" stroke-linecap="round" ${jammed ? 'stroke-dasharray="8 8"' : ""}/>`;
-    ends.push({ x1, y1, x2, y2 });
+    markup += `<path d="M ${spur.x1.toFixed(1)} ${spur.y1.toFixed(1)} C ${spur.c1x.toFixed(1)} ${spur.c1y.toFixed(1)}, ${spur.c2x.toFixed(1)} ${spur.c2y.toFixed(1)}, ${spur.x2.toFixed(1)} ${spur.y2.toFixed(1)}" fill="none" stroke="${jammed ? "#e23d3d" : "#c47a22"}" stroke-width="${jammed ? 8 : 6}" stroke-linecap="round" ${jammed ? 'stroke-dasharray="8 8"' : ""}/>`;
+    spurs.push(spur);
   });
   if (wires.dataset.sig !== markup) {
     wires.dataset.sig = markup;
@@ -360,11 +390,9 @@ function paintWires(box) {
   }
   const active = [];
   state.tracks.forEach((track, index) => {
-    if (!track || !ends[index]) return;
-    const end = ends[index];
-    const x = end.x1 + (end.x2 - end.x1) * track.t;
-    const y = end.y1 + (end.y2 - end.y1) * track.t;
-    active.push({ uid: track.toy.uid, type: track.toy.type, x, y });
+    if (!track || !spurs[index]) return;
+    const at = bezierPoint(spurs[index], track.t);
+    active.push({ uid: track.toy.uid, type: track.toy.type, x: at.x, y: at.y });
   });
   const sig = active.map((item) => item.uid).join(".");
   if (riders.dataset.sig !== sig) {
@@ -379,27 +407,66 @@ function paintWires(box) {
   }
 }
 
-function beltCenter() {
-  const stage = document.getElementById("stage").getBoundingClientRect();
-  const box = metrics();
-  if (!box) return { cx: stage.left + stage.width / 2, cy: stage.top + stage.height / 2 };
-  return { cx: stage.left + box.sx, cy: stage.top + box.sy };
-}
-
 function metrics() {
   const floor = floorEl.getBoundingClientRect();
   const stage = document.getElementById("stage").getBoundingClientRect();
   if (stage.width < 20 || stage.height < 20) return null;
-  const size = Math.min(stage.width, stage.height);
-  const r = Math.max(64, Math.min(128, size * 0.33));
+  const r = 32;
+  const straight = Math.max(88, stage.width - 28 - r * 2);
+  const cy = stage.height / 2;
+  const cx = stage.width / 2;
+  const curve = Math.PI * r;
   return {
     r,
-    sx: stage.width / 2,
-    sy: Math.min(stage.height * 0.46, r + 28),
-    fx: stage.left - floor.left + stage.width / 2,
-    fy: stage.top - floor.top + Math.min(stage.height * 0.46, r + 28),
+    straight,
+    perim: straight * 2 + curve * 2,
+    cx,
+    cy,
+    stageLeft: stage.left - floor.left,
+    stageTop: stage.top - floor.top,
+    fx: stage.left - floor.left + cx,
+    fy: stage.top - floor.top + cy,
     floor,
   };
+}
+
+function stadiumPath(box) {
+  const x0 = box.cx - box.straight / 2;
+  const x1 = box.cx + box.straight / 2;
+  const y0 = box.cy - box.r;
+  const y1 = box.cy + box.r;
+  return `M ${x0} ${y0} H ${x1} A ${box.r} ${box.r} 0 0 1 ${x1} ${y1} H ${x0} A ${box.r} ${box.r} 0 0 1 ${x0} ${y0}`;
+}
+
+function pathPoint(unit, box) {
+  const u = ((unit % 1) + 1) % 1;
+  const curve = Math.PI * box.r;
+  let d = u * box.perim;
+  const x0 = box.cx - box.straight / 2;
+  const x1 = box.cx + box.straight / 2;
+  if (d <= box.straight) return { x: x0 + d, y: box.cy - box.r };
+  d -= box.straight;
+  if (d <= curve) {
+    const angle = -Math.PI / 2 + (d / curve) * Math.PI;
+    return { x: x1 + Math.cos(angle) * box.r, y: box.cy + Math.sin(angle) * box.r };
+  }
+  d -= curve;
+  if (d <= box.straight) return { x: x1 - d, y: box.cy + box.r };
+  d -= box.straight;
+  const angle = Math.PI / 2 + (d / curve) * Math.PI;
+  return { x: x0 + Math.cos(angle) * box.r, y: box.cy + Math.sin(angle) * box.r };
+}
+
+function bezierPoint(spur, t) {
+  const u = 1 - t;
+  return {
+    x: u * u * u * spur.x1 + 3 * u * u * t * spur.c1x + 3 * u * t * t * spur.c2x + t * t * t * spur.x2,
+    y: u * u * u * spur.y1 + 3 * u * u * t * spur.c1y + 3 * u * t * t * spur.c2y + t * t * t * spur.y2,
+  };
+}
+
+function mod(value, size) {
+  return ((value % size) + size) % size;
 }
 
 function spawnBurst(stationIndex) {

@@ -20,11 +20,11 @@ A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600
 
 ## How a day works
 
-- Toys are icons. They line up above the belt and step onto the green cup when that cup is empty.
-- The belt does not move by itself. Drag around it to rotate the cups.
-- A red spur is a track to an elf. Tap the toy on that cup to send it down. Tap a toy at the elf to send it back. A full end sends the toy back the other way.
-- The icons on the elf are the list. When those toys are sitting in the elf's cups, the list ships, pays earnings, and a new list appears.
-- A toy that arrives while the line is already full costs cheer. At 0 cheer, a reserve elf takes that bench and cheer refills. No reserve left ends the run.
+- The slots above the belt are the queue. Empty slots are open. A toy steps onto the green cup when that cup is empty.
+- The belt is two rails with round ends. It does not move by itself. Drag along it to slide the cups.
+- A curved spur runs to each elf. Tap the toy on that cup to send it. A spur that already has a toy will not take another. Tap a toy at the elf to send it back. A full end sends the toy back the other way.
+- Order does not matter. Toys fill the first open cup. When the icons match, the station clears, pays earnings, and a new list appears.
+- Each elf has a cheer bar. A toy that arrives while every queue slot is full spends cheer on every elf. At 0, a reserve elf takes that bench and that cheer refills. No reserve left ends the run.
 - Later days add toy icons, longer lists, more benches, a faster line, a rush, or a jammed spur.
 - After each day except the last, the shop sells a longer line, faster tracks, more cups, slower cheer loss, one extra bench, and elf training. Training spends earnings and that elf misses the start of the next morning, then their track is quicker for the rest of the run.
 

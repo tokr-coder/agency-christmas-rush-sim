@@ -25,10 +25,6 @@
           <div class="pips" id="pips"></div>
           <button type="button" class="ask" data-action="help" aria-label="How to play">?</button>
         </div>
-        <div class="cheer" aria-label="Cheer">
-          <span id="cheer-fill"></span>
-          <em id="cheer-num">100</em>
-        </div>
         <div class="daybar" aria-hidden="true"><span id="day-fill"></span></div>
       </header>
       <div class="floor" id="floor" hidden>
@@ -36,15 +32,15 @@
         <div class="riders" id="riders"></div>
         <div class="lane" id="lane" aria-label="Incoming toys"></div>
         <div class="stage" id="stage">
-          <div class="ring" id="ring"></div>
+          <svg class="rail" id="rail" aria-hidden="true"></svg>
           <div class="belt" id="belt"></div>
         </div>
         <div class="stations" id="stations"></div>
       </div>
       <div class="help" id="help" hidden>
-        <p>Drag the belt until an empty cup meets the line of toys.</p>
-        <p>Tap a toy on a red spur to send it down. Tap a toy at the elf to send it back. If the far end is full, it comes back the other way.</p>
-        <p>Match the icons. A line that cannot take another toy costs cheer. The next elf steps in. No elves left ends the run.</p>
+        <p>The slots above the belt are the queue. Drag along the belt until the green cup is empty.</p>
+        <p>Tap a toy on a curved spur to send it. A spur that already holds a toy will not take another. Tap a toy at the elf to send it back.</p>
+        <p>Order does not matter. When the icons match, that elf clears and a new list appears. A full queue spends that elf's cheer. At 0, the next elf steps in.</p>
       </div>
     </div>
     <div class="sheet" id="shop" hidden></div>

@@ -12,7 +12,6 @@ export function createGame(config, seed) {
     dayLeft: 0,
     earned: 0,
     cash: 0,
-    cheer: config.cheerMax,
     cheerMax: config.cheerMax,
     elves: ELVES.map((elf) => ({ ...elf, speed: 1, pending: false, absentLeft: 0 })),
     reserves: ELVES.map((elf) => elf.id),
@@ -57,8 +56,13 @@ export function beginDay(state) {
   state.tracks = state.stations.map(() => null);
   state.spin = 0;
   state.dragging = false;
-  if (state.day > 1) state.cheer = Math.max(state.cheer, 45);
+  const already = state.stations.length;
   while (state.stations.length < plan.stations && state.reserves.length) addStation(state);
+  if (state.day > 1) {
+    for (let i = 0; i < already; i += 1) {
+      state.stations[i].cheer = Math.max(state.stations[i].cheer, 45);
+    }
+  }
   for (const elf of state.elves) {
     if (!elf.pending) {
       elf.absentLeft = 0;
@@ -90,11 +94,12 @@ export function slotCount(state) {
   return state.config.slotBase + state.upgrades.slots;
 }
 
-/** Fixed cup indexes around the belt. 0 is the incoming line, at the top. */
+/** Cups on the flat belt. 0 is the queue mouth, at the left of the top rail.
+ *  Bottom-rail cups feed the elf spurs. */
 export function portWorlds(count) {
-  if (count <= 2) return [5, 3];
-  if (count === 3) return [6, 2, 4];
-  return [7, 1, 5, 3];
+  if (count <= 2) return [6, 4];
+  if (count === 3) return [6, 4, 5];
+  return [6, 4, 7, 3];
 }
 
 export function worldOf(beltIndex, spin, n) {
@@ -245,10 +250,7 @@ function arriveStation(state, index) {
   station.slots[open] = track.toy;
   state.tracks[index] = null;
   if (!covers(station.slots, station.list)) return;
-  for (const type of station.list) {
-    const slot = station.slots.findIndex((toy) => toy && toy.type === type);
-    station.slots[slot] = null;
-  }
+  station.slots = station.slots.map(() => null);
   const pay = 24 + station.list.length * 14 + (state.day - 1) * 3;
   state.earned += pay;
   state.cash += pay;
@@ -268,22 +270,27 @@ function arriveBelt(state, index) {
 }
 
 function loseCheer(state, amount) {
-  state.cheer = Math.max(0, state.cheer - amount);
-  if (state.cheer > 0) return;
-  if (!state.reserves.length) {
-    state.dragging = false;
-    state.over = true;
-    state.phase = "results";
-    return;
+  const broke = [];
+  state.stations.forEach((station, index) => {
+    station.cheer = Math.max(0, station.cheer - amount);
+    if (station.cheer === 0) broke.push(index);
+  });
+  for (const index of broke) {
+    if (state.phase !== "play") return;
+    if (!state.reserves.length) {
+      state.dragging = false;
+      state.over = true;
+      state.phase = "results";
+      return;
+    }
+    const station = state.stations[index];
+    state.exhausted.push(station.elfId);
+    station.elfId = state.reserves.shift();
+    station.cheer = state.cheerMax;
+    station.slots = station.slots.map(() => null);
+    state.tracks[index] = null;
+    state.burst = { station: index, token: ++state.burstToken };
   }
-  const victim = state.breakCursor % state.stations.length;
-  state.breakCursor += 1;
-  state.exhausted.push(state.stations[victim].elfId);
-  state.stations[victim].elfId = state.reserves.shift();
-  state.stations[victim].slots = state.stations[victim].slots.map(() => null);
-  state.tracks[victim] = null;
-  state.cheer = state.cheerMax;
-  state.burst = { station: victim, token: ++state.burstToken };
 }
 
 function cheerHit(state) {
@@ -300,6 +307,7 @@ function addStation(state) {
   if (!elfId) return;
   state.stations.push({
     elfId,
+    cheer: state.cheerMax,
     slots: Array.from({ length: slotCount(state) }, () => null),
     list: rollList(state),
   });

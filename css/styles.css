@@ -153,34 +153,9 @@ button, input { font: inherit; }
   padding: 0;
 }
 
-.cheer {
-  position: relative;
-  height: 16px;
-  margin-top: 8px;
-  border-radius: 99px;
-  background: #f6d5d2;
-  overflow: hidden;
-}
-
-.cheer span {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #e23d3d, #f2c14b);
-}
-
-.cheer em {
-  position: absolute;
-  right: 8px;
-  top: 0;
-  font-style: normal;
-  font-size: 0.68rem;
-  line-height: 16px;
-}
-
 .daybar {
   height: 4px;
-  margin-top: 6px;
+  margin-top: 8px;
   border-radius: 99px;
   background: rgba(58, 34, 24, 0.08);
   overflow: hidden;
@@ -198,7 +173,7 @@ button, input { font: inherit; }
   z-index: 6;
   left: 12px;
   right: 12px;
-  top: 108px;
+  top: 72px;
   padding: 12px 14px;
   border-radius: 16px;
   background: var(--paper);
@@ -227,46 +202,54 @@ button, input { font: inherit; }
   position: relative;
   z-index: 3;
   flex: none;
-  min-height: 36px;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
   align-items: center;
-  gap: 2px;
-  padding: 2px 0 0;
+  gap: 6px;
+  min-height: 52px;
+  padding: 8px 12px 0;
 }
 
-.lane::after {
-  content: "";
-  width: 8px;
-  height: 16px;
-  border-radius: 0 0 8px 8px;
-  background: repeating-linear-gradient(180deg, var(--cran) 0 6px, #fff 6px 12px);
+.queue-mouth {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cran);
+  flex: none;
 }
 
-.lane .icon { width: 22px; height: 22px; }
+.qslot {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px rgba(58, 34, 24, 0.14);
+  display: grid;
+  place-items: center;
+}
 
-.lane.is-full .icon { filter: drop-shadow(0 0 3px var(--cran)); }
+.lane .icon { width: 24px; height: 24px; }
+
+.lane.is-full .qslot { box-shadow: inset 0 0 0 2px var(--cran); }
 
 .lane.is-rush { animation: rush 0.35s linear infinite; }
 
 .stage {
   position: relative;
   z-index: 2;
-  flex: 1;
-  min-height: 0;
+  flex: none;
+  height: 118px;
 }
 
-.ring {
+.rail {
   position: absolute;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, transparent 0 62%, #f3d7b0 63% 76%, #c6863a 77% 100%);
-  box-shadow: inset 0 0 0 3px rgba(255, 250, 244, 0.8), 0 10px 22px rgba(120, 60, 30, 0.16);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
 }
 
-.belt { position: absolute; inset: 0; }
+.belt { position: absolute; inset: 0; z-index: 1; }
 
 .cup, .hold {
   border: 0;
@@ -289,6 +272,8 @@ button, input { font: inherit; }
 .cup.is-intake { box-shadow: inset 0 0 0 3px var(--logo); }
 
 .cup.is-port { box-shadow: inset 0 0 0 3px var(--cran); }
+
+.cup.is-busy { box-shadow: inset 0 0 0 3px var(--cran); opacity: 0.72; }
 
 .icon { width: 28px; height: 28px; display: block; }
 
@@ -341,6 +326,21 @@ button, input { font: inherit; }
 .avatar-lottie, .burst { position: absolute; inset: 0; }
 
 .list, .holds { display: flex; gap: 4px; justify-content: center; align-items: center; }
+
+.mini-cheer {
+  width: 70%;
+  height: 8px;
+  border-radius: 99px;
+  background: #f6d5d2;
+  overflow: hidden;
+}
+
+.mini-cheer span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #e23d3d, #f2c14b);
+}
 
 .list { min-height: 20px; }
 
