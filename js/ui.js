@@ -64,7 +64,8 @@ function onPointerDown(event) {
   if (state.phase !== "play" || drag) return;
   const held = event.target.closest("[data-held]");
   if (held) {
-    tapStation(state, Number(held.dataset.station), Number(held.dataset.slot));
+    const slot = held.dataset.slot === "hold" ? "hold" : Number(held.dataset.slot);
+    tapStation(state, Number(held.dataset.station), slot);
     return;
   }
   if (!event.target.closest("#stage")) return;
@@ -248,6 +249,8 @@ function stationSig(station, index) {
     jammed,
     station.list.join("."),
     station.slots.map((toy) => toy?.uid || 0).join("."),
+    station.hold?.uid || 0,
+    state.upgrades.slots,
   ].join("|");
 }
 
@@ -257,9 +260,8 @@ function stationHtml(station, index) {
   const jammed = state.jam && state.jam.station === index;
   return `<article class="station${absent ? " is-absent" : ""}${jammed ? " is-jam" : ""}" data-sig="${stationSig(station, index)}" style="--hue:${elf.hue}">
     <div class="elf"><div class="avatar-lottie" data-lottie="${elf.id}"></div></div>
-    <div class="mini-cheer" aria-label="Cheer"><span data-cheer="${index}"></span></div>
     <div class="list">${station.list.map((id) => toySvg(id)).join("")}</div>
-    <div class="holds">${station.slots.map((toy, slot) => `<button type="button" class="hold" data-held data-station="${index}" data-slot="${slot}" aria-label="${toy ? "Toy" : "Empty"}">${toy ? toySvg(toy.type) : ""}</button>`).join("")}</div>
+    <div class="holds">${station.slots.map((toy, slot) => `<button type="button" class="hold" data-held data-station="${index}" data-slot="${slot}" aria-label="${toy ? "Toy" : "Empty"}">${toy ? toySvg(toy.type) : ""}</button>`).join("")}${state.upgrades.slots > 0 ? `<button type="button" class="hold is-hold" data-held data-station="${index}" data-slot="hold" aria-label="${station.hold ? "Held toy" : "Holding slot"}">${station.hold ? toySvg(station.hold.type) : ""}</button>` : ""}</div>
   </article>`;
 }
 
@@ -278,7 +280,7 @@ function syncShop() {
   shopEl.hidden = false;
   if (shopEl.dataset.sig === sig) return;
   shopEl.dataset.sig = sig;
-  const offers = UPGRADES.map((upgrade) => {
+  const offers = UPGRADES.filter((upgrade) => state.config.cheerEnabled || upgrade.id !== "cheer").map((upgrade) => {
     const level = state.upgrades[upgrade.id] || 0;
     const done = level >= upgrade.max;
     const blocked = upgrade.id === "station" && (!state.reserves.length || state.stations.length >= 4);
@@ -318,11 +320,6 @@ function paint() {
   const span = state.config.dayLengthSeconds || 1;
   const gone = state.phase === "play" ? 1 - state.dayLeft / span : state.phase === "title" ? 0 : 1;
   dayFill.style.width = `${Math.max(0, Math.min(1, gone)) * 100}%`;
-  document.querySelectorAll("[data-cheer]").forEach((bar) => {
-    const station = state.stations[Number(bar.dataset.cheer)];
-    const ratio = station && state.cheerMax ? station.cheer / state.cheerMax : 0;
-    bar.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
-  });
   if (floorEl.hidden) return;
   const box = metrics();
   if (!box) return;

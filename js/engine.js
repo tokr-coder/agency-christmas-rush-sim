@@ -74,9 +74,8 @@ export function beginDay(state) {
     elf.absentLeft = working ? state.dayLeft * 0.22 : 0;
   }
   for (const station of state.stations) {
-    while (station.slots.length < slotCount(state)) station.slots.push(null);
-    station.slots = station.slots.map(() => null);
     station.list = rollList(state);
+    station.slots = Array.from({ length: station.list.length }, () => null);
   }
   state.tracks = state.stations.map(() => null);
 }
@@ -90,8 +89,8 @@ export function queueMax(state) {
   return state.config.queueBase + state.upgrades.queue;
 }
 
-export function slotCount(state) {
-  return state.config.slotBase + state.upgrades.slots;
+export function holdSlots(state) {
+  return state.upgrades.slots > 0 ? 1 : 0;
 }
 
 /** Cups on the flat belt. 0 is the queue mouth, at the left of the top rail.
@@ -132,9 +131,12 @@ export function tapBelt(state, beltIndex) {
 export function tapStation(state, stationIndex, slotIndex) {
   if (state.phase !== "play" || state.dragging) return false;
   const station = state.stations[stationIndex];
-  const toy = station?.slots[slotIndex];
-  if (!toy || state.tracks[stationIndex]) return false;
-  station.slots[slotIndex] = null;
+  if (!station || state.tracks[stationIndex]) return false;
+  const held = slotIndex === "hold";
+  const toy = held ? station.hold : station.slots[slotIndex];
+  if (!toy) return false;
+  if (held) station.hold = null;
+  else station.slots[slotIndex] = null;
   state.tracks[stationIndex] = {
     toy,
     dir: -1,
@@ -151,14 +153,10 @@ export function buy(state, id) {
   if (!spec || level >= spec.max) return false;
   const cost = spec.costs[level];
   if (state.cash < cost) return false;
+  if (id === "cheer" && !state.config.cheerEnabled) return false;
   if (id === "station" && (!state.reserves.length || state.stations.length >= 4)) return false;
   state.cash -= cost;
   state.upgrades[id] = level + 1;
-  if (id === "slots") {
-    for (const station of state.stations) {
-      while (station.slots.length < slotCount(state)) station.slots.push(null);
-    }
-  }
   if (id === "station") addStation(state);
   return true;
 }
@@ -204,8 +202,10 @@ export function tick(state, dt) {
   if (state.spawnIn <= 0) {
     state.spawnIn = state.rushLeft > 0 ? state.spawnEvery * 0.55 : state.spawnEvery;
     if (state.queue.length >= queueMax(state)) {
-      loseCheer(state, cheerHit(state));
-      if (state.phase !== "play") return;
+      if (state.config.cheerEnabled) {
+        loseCheer(state, cheerHit(state));
+        if (state.phase !== "play") return;
+      }
     } else {
       state.queue.push(makeToy(state));
     }
@@ -242,19 +242,21 @@ function arriveStation(state, index) {
   const station = state.stations[index];
   const elf = state.elves.find((item) => item.id === station.elfId);
   const open = station.slots.findIndex((slot) => !slot);
+  const holdOpen = holdSlots(state) > 0 && !station.hold;
   const jammed = state.jam && state.jam.station === index;
-  if (jammed || elf.absentLeft > 0 || open < 0) {
+  if (jammed || elf.absentLeft > 0 || (open < 0 && !holdOpen)) {
     track.dir = -1;
     return;
   }
-  station.slots[open] = track.toy;
+  if (open >= 0) station.slots[open] = track.toy;
+  else station.hold = track.toy;
   state.tracks[index] = null;
-  if (!covers(station.slots, station.list)) return;
-  station.slots = station.slots.map(() => null);
+  if (open < 0 || !covers(station.slots, station.list)) return;
   const pay = 24 + station.list.length * 14 + (state.day - 1) * 3;
   state.earned += pay;
   state.cash += pay;
   station.list = rollList(state);
+  station.slots = Array.from({ length: station.list.length }, () => null);
   state.burst = { station: index, token: ++state.burstToken };
 }
 
@@ -308,7 +310,8 @@ function addStation(state) {
   state.stations.push({
     elfId,
     cheer: state.cheerMax,
-    slots: Array.from({ length: slotCount(state) }, () => null),
+    slots: [],
+    hold: null,
     list: rollList(state),
   });
   state.tracks.push(null);
@@ -316,8 +319,37 @@ function addStation(state) {
 
 function makeToy(state) {
   const types = TOYS.slice(0, state.typeCount);
-  const type = types[Math.floor(state.rand() * types.length)].id;
+  const rescue = rescueType(state);
+  const type = rescue || types[Math.floor(state.rand() * types.length)].id;
   return { uid: state.uid++, type };
+}
+
+/** When the belt is more than half full and a list is one toy short, with a cup open, the next toy is that missing one. */
+function rescueType(state) {
+  const filled = state.belt.filter(Boolean).length;
+  if (filled / state.belt.length <= 0.5) return null;
+  const due = [];
+  for (const station of state.stations) {
+    const missing = missingTypes(station);
+    const empty = station.slots.filter((slot) => !slot).length;
+    if (missing.length === 1 && empty >= 1) due.push(missing[0]);
+  }
+  if (!due.length) return null;
+  return due[Math.floor(state.rand() * due.length)];
+}
+
+function missingTypes(station) {
+  const have = new Map();
+  for (const toy of station.slots) {
+    if (toy) have.set(toy.type, (have.get(toy.type) || 0) + 1);
+  }
+  const missing = [];
+  for (const type of station.list) {
+    const left = (have.get(type) || 0) - 1;
+    if (left < 0) missing.push(type);
+    else have.set(type, left);
+  }
+  return missing;
 }
 
 function rollList(state) {
