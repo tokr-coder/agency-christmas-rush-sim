@@ -207,7 +207,8 @@ export function tick(state, dt) {
         if (state.phase !== "play") return;
       }
     } else {
-      state.queue.push(makeToy(state));
+      const toy = makeToy(state);
+      if (toy) state.queue.push(toy);
     }
   }
   acceptIntake(state);
@@ -318,24 +319,58 @@ function addStation(state) {
 }
 
 function makeToy(state) {
-  const types = TOYS.slice(0, state.typeCount);
-  const rescue = rescueType(state);
-  const type = rescue || types[Math.floor(state.rand() * types.length)].id;
+  const type = nextToyType(state);
+  if (!type) return null;
   return { uid: state.uid++, type };
 }
 
-/** When the belt is more than half full and a list is one toy short, with a cup open, the next toy is that missing one. */
-function rescueType(state) {
-  const filled = state.belt.filter(Boolean).length;
-  if (filled / state.belt.length <= 0.5) return null;
-  const due = [];
-  for (const station of state.stations) {
-    const missing = missingTypes(station);
-    const empty = station.slots.filter((slot) => !slot).length;
-    if (missing.length === 1 && empty >= 1) due.push(missing[0]);
+/** Next toy is one some list still needs and that is not already waiting in the queue.
+ *  A copy already on the belt, or already on its way to that elf, covers that need.
+ *  If every remaining need is already queued, nothing is dealt. */
+function nextToyType(state) {
+  const queued = tally(state.queue);
+  const belt = tally(state.belt);
+  for (const track of state.tracks) {
+    if (track && track.dir < 0) addTally(belt, track.toy.type);
   }
-  if (!due.length) return null;
-  return due[Math.floor(state.rand() * due.length)];
+  const inbound = state.stations.map(() => new Map());
+  state.tracks.forEach((track, index) => {
+    if (track && track.dir > 0) addTally(inbound[index], track.toy.type);
+  });
+
+  const queueLeft = new Map(queued);
+  const beltLeft = new Map(belt);
+  const open = [];
+  for (let index = 0; index < state.stations.length; index += 1) {
+    const arriving = new Map(inbound[index]);
+    for (const type of missingTypes(state.stations[index])) {
+      if (takeTally(arriving, type)) continue;
+      if (takeTally(queueLeft, type)) continue;
+      if (takeTally(beltLeft, type)) continue;
+      if ((queued.get(type) || 0) > 0) continue;
+      open.push(type);
+    }
+  }
+  if (!open.length) return null;
+  const choices = [...new Set(open)];
+  return choices[Math.floor(state.rand() * choices.length)];
+}
+
+function tally(toys) {
+  const counts = new Map();
+  for (const toy of toys) if (toy) addTally(counts, toy.type);
+  return counts;
+}
+
+function addTally(counts, type) {
+  counts.set(type, (counts.get(type) || 0) + 1);
+}
+
+function takeTally(counts, type) {
+  const left = counts.get(type) || 0;
+  if (left <= 0) return false;
+  counts.set(type, left - 1);
+  return true;
 }
 
 function missingTypes(station) {
