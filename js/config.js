@@ -7,7 +7,7 @@ export const CONFIG = {
   dayLengthSeconds: 75,
   beltSlots: 8,
   queueBase: 4,
-  slotBase: 3,
+  cheerEnabled: false,
   cheerMax: 100,
 };
 

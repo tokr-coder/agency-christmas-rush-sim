@@ -41,7 +41,7 @@ export const DAYS = [
 export const UPGRADES = [
   { id: "queue", max: 3, costs: [70, 130, 210] },
   { id: "track", max: 2, costs: [90, 170] },
-  { id: "slots", max: 2, costs: [110, 190] },
+  { id: "slots", max: 1, costs: [140] },
   { id: "cheer", max: 3, costs: [80, 150, 260] },
   { id: "station", max: 1, costs: [240] },
 ];
