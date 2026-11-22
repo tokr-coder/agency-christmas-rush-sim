@@ -324,53 +324,15 @@ function makeToy(state) {
   return { uid: state.uid++, type };
 }
 
-/** Next toy is one some list still needs and that is not already waiting in the queue.
- *  A copy already on the belt, or already on its way to that elf, covers that need.
- *  If every remaining need is already queued, nothing is dealt. */
+/** A needed toy is drawn at random from every list that is still short.
+ *  Copies already waiting in the queue do not stop the line, and the draw is not
+ *  the first station's gap, so the next toy cannot be predicted from station order. */
 function nextToyType(state) {
-  const queued = tally(state.queue);
-  const belt = tally(state.belt);
-  for (const track of state.tracks) {
-    if (track && track.dir < 0) addTally(belt, track.toy.type);
-  }
-  const inbound = state.stations.map(() => new Map());
-  state.tracks.forEach((track, index) => {
-    if (track && track.dir > 0) addTally(inbound[index], track.toy.type);
-  });
-
-  const queueLeft = new Map(queued);
-  const beltLeft = new Map(belt);
-  const open = [];
-  for (let index = 0; index < state.stations.length; index += 1) {
-    const arriving = new Map(inbound[index]);
-    for (const type of missingTypes(state.stations[index])) {
-      if (takeTally(arriving, type)) continue;
-      if (takeTally(queueLeft, type)) continue;
-      if (takeTally(beltLeft, type)) continue;
-      if ((queued.get(type) || 0) > 0) continue;
-      open.push(type);
-    }
-  }
-  if (!open.length) return null;
-  const choices = [...new Set(open)];
-  return choices[Math.floor(state.rand() * choices.length)];
-}
-
-function tally(toys) {
-  const counts = new Map();
-  for (const toy of toys) if (toy) addTally(counts, toy.type);
-  return counts;
-}
-
-function addTally(counts, type) {
-  counts.set(type, (counts.get(type) || 0) + 1);
-}
-
-function takeTally(counts, type) {
-  const left = counts.get(type) || 0;
-  if (left <= 0) return false;
-  counts.set(type, left - 1);
-  return true;
+  const needed = [];
+  for (const station of state.stations) needed.push(...missingTypes(station));
+  const pool = needed.length ? needed : state.stations.flatMap((station) => station.list);
+  if (!pool.length) return null;
+  return pool[Math.floor(state.rand() * pool.length)];
 }
 
 function missingTypes(station) {
