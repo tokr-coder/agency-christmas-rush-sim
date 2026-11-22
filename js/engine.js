@@ -207,7 +207,8 @@ export function tick(state, dt) {
         if (state.phase !== "play") return;
       }
     } else {
-      state.queue.push(makeToy(state));
+      const toy = makeToy(state);
+      if (toy) state.queue.push(toy);
     }
   }
   acceptIntake(state);
@@ -318,24 +319,20 @@ function addStation(state) {
 }
 
 function makeToy(state) {
-  const types = TOYS.slice(0, state.typeCount);
-  const rescue = rescueType(state);
-  const type = rescue || types[Math.floor(state.rand() * types.length)].id;
+  const type = nextToyType(state);
+  if (!type) return null;
   return { uid: state.uid++, type };
 }
 
-/** When the belt is more than half full and a list is one toy short, with a cup open, the next toy is that missing one. */
-function rescueType(state) {
-  const filled = state.belt.filter(Boolean).length;
-  if (filled / state.belt.length <= 0.5) return null;
-  const due = [];
-  for (const station of state.stations) {
-    const missing = missingTypes(station);
-    const empty = station.slots.filter((slot) => !slot).length;
-    if (missing.length === 1 && empty >= 1) due.push(missing[0]);
-  }
-  if (!due.length) return null;
-  return due[Math.floor(state.rand() * due.length)];
+/** A needed toy is drawn at random from every list that is still short.
+ *  Copies already waiting in the queue do not stop the line, and the draw is not
+ *  the first station's gap, so the next toy cannot be predicted from station order. */
+function nextToyType(state) {
+  const needed = [];
+  for (const station of state.stations) needed.push(...missingTypes(station));
+  const pool = needed.length ? needed : state.stations.flatMap((station) => station.list);
+  if (!pool.length) return null;
+  return pool[Math.floor(state.rand() * pool.length)];
 }
 
 function missingTypes(station) {
