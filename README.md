@@ -1,6 +1,6 @@
 # Santa's Workshop
 
-Twelve working days with the elves. Drag toys onto the benches, hold the line through workshop emergencies, and finish as many toys as the season will allow. The score is toys finished. Each toy also pays stars, and the shop spends those. The Ignite mark stays in the corner.
+Twelve days on the toy conveyor. Drag the belt, send icons down the spurs, and finish each elf's list. The score is total earnings. The night shop spends what you have banked, and spending does not lower the score. The Ignite mark stays in the corner.
 
 ## Play
 
@@ -16,48 +16,26 @@ Open `http://127.0.0.1:8080`.
 
 GitHub Pages can host the workshop, and it cannot run PHP. The game still plays. The results screen says the board needs a PHP host.
 
-A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600 seconds). The shipped day length is `dayLengthSeconds` in `js/config.js` (240 = 4 minutes). The clock reads 6 game hours. Durations in `js/catalog.js` stay in the old 12-hour scale, and the labels are halved, so a toy or a training block keeps the same real minutes.
+A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600 seconds). The shipped day length is `dayLengthSeconds` in `js/config.js` (75 seconds).
 
-## How the workshop works
+## How a day works
 
-- Drag a toy onto an elf. Drop it on their queue to choose the slot. Drag a queued pill to reorder it.
-- The card names the toy: a rocking horse, a jack-in-the-box, a teddy bear. The skill chips say how it is made: designing, painting, hammering, carving, wrapping. Matching a specialty finishes the work faster. The workshop does not highlight a match.
-- A toy expires if it sits in the tray.
-- Emergencies stop the workshop. A box names the problem in plain words and who can take it. The day waits until you send it. It takes that elf's bench immediately, pushing the toy they were already on back into the queue. Each one arrives at a random time before noon (the workshop runs 8:00–2:00). The day 11 emergency occupies both named elves.
-- The last three seconds of a day show a large 3, 2, 1 behind the workshop.
-- Holding a toy against the top or bottom edge of the screen scrolls the roster.
-- Eggnog and cheer fall while elves are working, faster than a single cheap perk can cover. Each morning brings them back to at least a tired start if they bottomed out. Empty eggnog makes every toy take more than twice as long. Empty cheer makes a random elf stop and cry for 45 seconds, about every 30 seconds, until cheer returns. The day 10 eggnog emergency stops eggnog from returning until it is handled.
-- An eggnog break, when eggnog is under 50, spends 30 minutes and sets eggnog to 50. A candy break spends 30 minutes, lifts cheer to 80, stops the crying, and toys take 1.5× until close.
-- The shop opens after days 1 through 11. Perks and training spend stars. Training also takes hours at the start of the next morning, and that elf does not work until it ends. Day 12 goes straight to the score.
-- The score is toys finished across the 12 days. Spending stars does not change it. A finished toy still counts when its stars are frozen.
-
-## Roster
-
-| Name | Role | Specialties |
-| --- | --- | --- |
-| Coree-Ann | Head Elf | Designing, Wrapping, Painting |
-| Brandon | Builder | Hammering, Painting, Carving |
-| Tomas | Woodwright | Carving, Designing, Hammering |
-| Sean | Painter | Painting, Hammering, Wrapping |
-| Kajal | Toymaker | Designing, Wrapping, Carving |
-| Jessica | Gift Lead | Wrapping, Designing, Hammering |
-
-Each elf has a three-tier tree in `js/catalog.js`. A tier costs stars at night and hours the next morning. The last tier adds a specialty or cuts an emergency short.
+- The slots above the belt are the queue. Empty slots are open. A toy steps onto the green cup when that cup is empty.
+- The belt is two rails with round ends. It does not move by itself. Drag along it to slide the cups.
+- A curved spur runs to each elf. Tap the toy on that cup to send it. A spur that already has a toy will not take another. Tap a toy at the elf to send it back. A full end sends the toy back the other way.
+- Order does not matter. Toys fill the first open cup. When the icons match, the station clears, pays earnings, and a new list appears.
+- Each elf has a cheer bar. A toy that arrives while every queue slot is full spends cheer on every elf. At 0, a reserve elf takes that bench and that cheer refills. No reserve left ends the run.
+- Later days add toy icons, longer lists, more benches, a faster line, a rush, or a jammed spur.
+- After each day except the last, the shop sells a longer line, faster tracks, more cups, slower cheer loss, one extra bench, and elf training. Training spends earnings and that elf misses the start of the next morning, then their track is quicker for the rest of the run.
 
 ## Leaderboard
 
-The results screen posts `{ "name", "email", "score" }` to `leaderboard.php`. The reply is the top 10 names and scores. Emails are appended to `storage/scores.jsonl` and are not included in the reply. A score outside the top 10 is not stored.
+The results screen posts `{ "name", "email", "score" }` to `leaderboard.php`. The score is total earnings. The reply is the top 10 names and scores. Emails are appended to `storage/scores.jsonl` and are not included in the reply. A score outside the top 10 is not stored.
 
 ## Avatars
 
-The current portraits stay in place until new elf animations arrive. Motion lives in `lottie/`. The illustrated SVG token stays underneath if an animation cannot load. `vendor/lottie.min.js` is [Lottie Web](https://github.com/airbnb/lottie-web) 5.12.2 (MIT, see `vendor/lottie.LICENSE.md`). To use an approved photo instead, set a path in `PORTRAITS` inside `js/ui.js`:
-
-```js
-const PORTRAITS = {
-  coree: "assets/coree.jpg",
-};
-```
+Motion lives in `lottie/`. `vendor/lottie.min.js` is [Lottie Web](https://github.com/airbnb/lottie-web) 5.12.2 (MIT, see `vendor/lottie.LICENSE.md`).
 
 ## Tuning
 
-`js/config.js` holds the day length, tray size, queue size, spawn rate, and how long a toy waits. `js/catalog.js` holds the toys, the 12-day emergencies, the skill trees, and the workshop perks.
+`js/config.js` holds the day length, belt size, line size, and cup count. `js/catalog.js` holds the toy icons, the 12-day ramp, and the shop.

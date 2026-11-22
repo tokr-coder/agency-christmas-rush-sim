@@ -1,6 +1,6 @@
 <?php
 /**
- * Top 10 board for The Q4 Rush.
+ * Top 10 board. The score is total earnings. Emails stay in storage/scores.jsonl.
  * Emails are written into storage/scores.jsonl and are never returned.
  */
 declare(strict_types=1);
