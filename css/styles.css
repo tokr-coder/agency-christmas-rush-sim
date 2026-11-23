@@ -325,6 +325,8 @@ button, input { font: inherit; }
 
 .list, .holds { display: flex; gap: 4px; justify-content: center; align-items: center; }
 
+.holds { flex-wrap: wrap; max-width: 100%; }
+
 .list { min-height: 20px; }
 
 .list .icon { width: 18px; height: 18px; }

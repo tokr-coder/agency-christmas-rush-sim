@@ -164,6 +164,8 @@ export function tick(state, dt) {
     state.jam.left -= dt;
     if (state.jam.left <= 0) state.jam = null;
   }
+  releaseHeldToys(state);
+  if (state.phase !== "play") return;
   state.spawnIn -= dt;
   if (state.spawnIn <= 0) {
     state.spawnIn = state.spawnEvery;
@@ -175,6 +177,13 @@ export function tick(state, dt) {
       const toy = makeToy(state);
       if (toy) {
         state.queue.push(toy);
+        state.spawned += 1;
+      }
+    } else if (state.queue.length < queueMax(state)) {
+      const { current } = toyOutlook(state);
+      if (current.length) {
+        const type = current[Math.floor(state.rand() * current.length)];
+        state.queue.push({ uid: state.uid++, type });
         state.spawned += 1;
       }
     }
@@ -219,7 +228,71 @@ function arriveStation(state, index) {
   if (open >= 0) station.slots[open] = track.toy;
   else station.hold = track.toy;
   state.tracks[index] = null;
-  if (open < 0 || !station.list.length || !covers(station.slots, station.list)) return;
+  if (open >= 0) payList(state, index);
+}
+
+/** A held toy fills an open cup on its own elf when the list needs it.
+ *  A finished elf sends a held toy back when another list still needs that toy and no other copy is out. */
+function releaseHeldToys(state) {
+  for (let index = 0; index < state.stations.length; index += 1) {
+    if (state.phase !== "play") return;
+    placeHeldToy(state, index);
+  }
+  if (state.phase !== "play") return;
+  for (let index = 0; index < state.stations.length; index += 1) returnIdleHold(state, index);
+}
+
+function placeHeldToy(state, index) {
+  const station = state.stations[index];
+  if (!station.hold || state.tracks[index]) return;
+  if (!listStillNeeds(station, station.hold.type)) return;
+  const open = station.slots.findIndex((slot) => !slot);
+  if (open < 0) return;
+  station.slots[open] = station.hold;
+  station.hold = null;
+  payList(state, index);
+}
+
+function returnIdleHold(state, index) {
+  const station = state.stations[index];
+  if (station.list.length || !station.hold || state.tracks[index]) return;
+  const type = station.hold.type;
+  const needed = state.stations.some((other, otherIndex) => otherIndex !== index && listStillNeeds(other, type));
+  if (!needed || copyReady(state, type)) return;
+  const world = portWorlds(state.stations.length)[index];
+  const beltIndex = alignedIndex(state, world);
+  if (state.belt[beltIndex]) return;
+  if (state.tracks.some((track) => track && track.dir < 0 && alignedIndex(state, track.world) === beltIndex)) return;
+  state.tracks[index] = { toy: station.hold, dir: -1, t: 1, world };
+  station.hold = null;
+}
+
+function listStillNeeds(station, type) {
+  return placedCount(station, type) < countType(station.list, type);
+}
+
+function placedCount(station, type) {
+  let count = 0;
+  for (const toy of station.slots) if (toy?.type === type) count += 1;
+  return count;
+}
+
+function countType(list, type) {
+  let count = 0;
+  for (const item of list) if (item === type) count += 1;
+  return count;
+}
+
+function copyReady(state, type) {
+  if (state.queue.some((toy) => toy.type === type)) return true;
+  if (state.belt.some((toy) => toy?.type === type)) return true;
+  if (state.tracks.some((track) => track?.toy.type === type)) return true;
+  return state.stations.some((station) => placedCount(station, type) > countType(station.list, type));
+}
+
+function payList(state, index) {
+  const station = state.stations[index];
+  if (!station.list.length || !covers(station.slots, station.list)) return;
   const pay = 24 + station.list.length * 14 + (state.day - 1) * 3;
   state.earned += pay;
   state.cash += pay;
@@ -293,6 +366,13 @@ function makeToy(state) {
 
 /** Next toy is a random uncovered need on a bench. Later-list toys wait until those needs are already out. */
 function nextToyType(state) {
+  const { current, future } = toyOutlook(state);
+  const pool = current.length ? current : future;
+  if (!pool.length) return null;
+  return pool[Math.floor(state.rand() * pool.length)];
+}
+
+function toyOutlook(state) {
   const needs = [];
   const shared = tally(state.queue);
   for (const toy of state.belt) if (toy) addTally(shared, toy.type);
@@ -309,12 +389,9 @@ function nextToyType(state) {
       for (let n = 0; n < count; n += 1) addTally(shared, type);
     }
   });
-  const uncovered = needs.filter((type) => !takeTally(shared, type));
-  if (uncovered.length) return uncovered[Math.floor(state.rand() * uncovered.length)];
-  const future = state.listStack.flatMap((list) => list);
-  const still = future.filter((type) => !takeTally(shared, type));
-  if (!still.length) return null;
-  return still[Math.floor(state.rand() * still.length)];
+  const current = needs.filter((type) => !takeTally(shared, type));
+  const future = state.listStack.flatMap((list) => list).filter((type) => !takeTally(shared, type));
+  return { current, future };
 }
 
 function tally(toys) {
