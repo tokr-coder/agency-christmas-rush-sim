@@ -1,4 +1,4 @@
-import { toySvg, TRAIN_COST, UPGRADES } from "./catalog.js";
+import { toySvg, UPGRADES } from "./catalog.js";
 import { loadConfig } from "./config.js";
 import {
   beginDay,
@@ -11,7 +11,6 @@ import {
   tapBelt,
   tapStation,
   tick,
-  train,
   worldOf,
 } from "./engine.js";
 
@@ -126,7 +125,6 @@ function onClick(event) {
   if (action === "start") beginDay(state);
   if (action === "next") nextDay(state);
   if (action === "buy") buy(state, button.dataset.upgrade);
-  if (action === "train") train(state, button.dataset.elf);
   if (action === "again") again();
 }
 
@@ -241,11 +239,9 @@ function syncStations() {
 }
 
 function stationSig(station, index) {
-  const elf = state.elves.find((item) => item.id === station.elfId);
   const jammed = state.jam && state.jam.station === index ? 1 : 0;
   return [
     station.elfId,
-    elf?.absentLeft > 0 ? 1 : 0,
     jammed,
     station.list.join("."),
     station.slots.map((toy) => toy?.uid || 0).join("."),
@@ -256,9 +252,8 @@ function stationSig(station, index) {
 
 function stationHtml(station, index) {
   const elf = state.elves.find((item) => item.id === station.elfId);
-  const absent = elf.absentLeft > 0;
   const jammed = state.jam && state.jam.station === index;
-  return `<article class="station${absent ? " is-absent" : ""}${jammed ? " is-jam" : ""}" data-sig="${stationSig(station, index)}" style="--hue:${elf.hue}">
+  return `<article class="station${jammed ? " is-jam" : ""}" data-sig="${stationSig(station, index)}" style="--hue:${elf.hue}">
     <div class="elf"><div class="avatar-lottie" data-lottie="${elf.id}"></div></div>
     <div class="list">${station.list.map((id) => toySvg(id)).join("")}</div>
     <div class="holds">${station.slots.map((toy, slot) => `<button type="button" class="hold" data-held data-station="${index}" data-slot="${slot}" aria-label="${toy ? "Toy" : "Empty"}">${toy ? toySvg(toy.type) : ""}</button>`).join("")}${state.upgrades.slots > 0 ? `<button type="button" class="hold is-hold" data-held data-station="${index}" data-slot="hold" aria-label="${station.hold ? "Held toy" : "Holding slot"}">${station.hold ? toySvg(station.hold.type) : ""}</button>` : ""}</div>
@@ -273,7 +268,6 @@ function syncShop() {
   const sig = JSON.stringify({
     cash: state.cash,
     upgrades: state.upgrades,
-    elves: state.elves.map((elf) => [elf.id, elf.pending, elf.speed, state.exhausted.includes(elf.id)]),
     reserves: state.reserves.length,
     stations: state.stations.length,
   });
@@ -286,14 +280,9 @@ function syncShop() {
     const blocked = upgrade.id === "station" && (!state.reserves.length || state.stations.length >= 4);
     const cost = done ? "" : upgrade.costs[level];
     const affordable = !done && !blocked && state.cash >= cost;
-    return `<button type="button" class="offer" data-action="buy" data-upgrade="${upgrade.id}" ${affordable ? "" : "disabled"} aria-label="${upgrade.id}">${SHOP_ICONS[upgrade.id]}<b>${done ? "✓" : cost}</b></button>`;
+    return `<button type="button" class="offer" data-action="buy" data-upgrade="${upgrade.id}" ${affordable ? "" : "disabled"} aria-label="${upgrade.name}">${SHOP_ICONS[upgrade.id]}<span>${upgrade.name}</span><b>${done ? "✓" : cost}</b></button>`;
   }).join("");
-  const trainees = state.elves.filter((elf) => !state.exhausted.includes(elf.id)).map((elf) => {
-    const ready = !elf.pending && elf.speed >= 1 && state.cash >= TRAIN_COST;
-    const mark = elf.speed < 1 ? "✓" : elf.pending ? "…" : TRAIN_COST;
-    return `<button type="button" class="trainee" style="--hue:${elf.hue}" data-action="train" data-elf="${elf.id}" ${ready ? "" : "disabled"} aria-label="Train elf"><b>${mark}</b></button>`;
-  }).join("");
-  shopEl.innerHTML = `<div class="card"><p class="sheet-cash">${state.cash}</p><div class="offers">${offers}</div><div class="trainees">${trainees}</div><button type="button" class="next" data-action="next" aria-label="Next day">✓</button></div>`;
+  shopEl.innerHTML = `<div class="card"><p class="sheet-cash">${state.cash}</p><div class="offers">${offers}</div><button type="button" class="next" data-action="next" aria-label="Next day">✓</button></div>`;
 }
 
 function syncOverlay() {

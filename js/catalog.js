@@ -39,14 +39,12 @@ export const DAYS = [
 ];
 
 export const UPGRADES = [
-  { id: "queue", max: 3, costs: [70, 130, 210] },
-  { id: "track", max: 2, costs: [90, 170] },
-  { id: "slots", max: 1, costs: [140] },
-  { id: "cheer", max: 3, costs: [80, 150, 260] },
-  { id: "station", max: 1, costs: [240] },
+  { id: "queue", name: "Longer queue", max: 3, costs: [70, 130, 210] },
+  { id: "track", name: "Faster spurs", max: 2, costs: [90, 170] },
+  { id: "slots", name: "Holding cup", max: 1, costs: [140] },
+  { id: "cheer", name: "Cheer", max: 3, costs: [80, 150, 260] },
+  { id: "station", name: "Extra bench", max: 1, costs: [240] },
 ];
-
-export const TRAIN_COST = 160;
 
 export function toySvg(id) {
   const toy = TOYS.find((item) => item.id === id) || TOYS[0];

@@ -1,4 +1,4 @@
-import { DAYS, ELVES, TOYS, TRAIN_COST, UPGRADES } from "./catalog.js";
+import { DAYS, ELVES, TOYS, UPGRADES } from "./catalog.js";
 
 const TRAVEL = [1.15, 0.86, 0.64];
 const CHEER_SCALE = [1, 0.78, 0.6, 0.46];
@@ -13,7 +13,7 @@ export function createGame(config, seed) {
     earned: 0,
     cash: 0,
     cheerMax: config.cheerMax,
-    elves: ELVES.map((elf) => ({ ...elf, speed: 1, pending: false, absentLeft: 0 })),
+    elves: ELVES.map((elf) => ({ ...elf })),
     reserves: ELVES.map((elf) => elf.id),
     exhausted: [],
     stations: [],
@@ -62,16 +62,6 @@ export function beginDay(state) {
     for (let i = 0; i < already; i += 1) {
       state.stations[i].cheer = Math.max(state.stations[i].cheer, 45);
     }
-  }
-  for (const elf of state.elves) {
-    if (!elf.pending) {
-      elf.absentLeft = 0;
-      continue;
-    }
-    elf.speed = Math.min(elf.speed, 0.72);
-    elf.pending = false;
-    const working = state.stations.some((station) => station.elfId === elf.id);
-    elf.absentLeft = working ? state.dayLeft * 0.22 : 0;
   }
   for (const station of state.stations) {
     station.list = rollList(state);
@@ -161,16 +151,6 @@ export function buy(state, id) {
   return true;
 }
 
-export function train(state, elfId) {
-  if (state.phase !== "shop") return false;
-  const elf = state.elves.find((item) => item.id === elfId);
-  if (!elf || elf.pending || elf.speed < 1 || state.exhausted.includes(elfId)) return false;
-  if (state.cash < TRAIN_COST) return false;
-  state.cash -= TRAIN_COST;
-  elf.pending = true;
-  return true;
-}
-
 export function tick(state, dt) {
   if (state.phase !== "play" || !(dt > 0)) return;
   state.dayLeft -= dt;
@@ -194,9 +174,6 @@ export function tick(state, dt) {
   if (state.jam) {
     state.jam.left -= dt;
     if (state.jam.left <= 0) state.jam = null;
-  }
-  for (const elf of state.elves) {
-    if (elf.absentLeft > 0) elf.absentLeft = Math.max(0, elf.absentLeft - dt);
   }
   state.spawnIn -= dt;
   if (state.spawnIn <= 0) {
@@ -226,7 +203,7 @@ function acceptIntake(state) {
 function moveTracks(state, dt) {
   state.tracks.forEach((track, index) => {
     if (!track) return;
-    const step = dt / travelSeconds(state, state.stations[index]);
+    const step = dt / travelSeconds(state);
     track.t += step * track.dir;
     if (track.dir > 0 && track.t >= 1) {
       track.t = 1;
@@ -241,11 +218,10 @@ function moveTracks(state, dt) {
 function arriveStation(state, index) {
   const track = state.tracks[index];
   const station = state.stations[index];
-  const elf = state.elves.find((item) => item.id === station.elfId);
   const open = station.slots.findIndex((slot) => !slot);
   const holdOpen = holdSlots(state) > 0 && !station.hold;
   const jammed = state.jam && state.jam.station === index;
-  if (jammed || elf.absentLeft > 0 || (open < 0 && !holdOpen)) {
+  if (jammed || (open < 0 && !holdOpen)) {
     track.dir = -1;
     return;
   }
@@ -300,9 +276,8 @@ function cheerHit(state) {
   return 18 * CHEER_SCALE[state.upgrades.cheer];
 }
 
-function travelSeconds(state, station) {
-  const elf = state.elves.find((item) => item.id === station.elfId);
-  return TRAVEL[state.upgrades.track] * (elf?.speed || 1);
+function travelSeconds(state) {
+  return TRAVEL[state.upgrades.track];
 }
 
 function addStation(state) {
