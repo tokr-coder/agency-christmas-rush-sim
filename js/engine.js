@@ -102,8 +102,7 @@ export function worldOf(beltIndex, spin, n) {
 }
 
 export function alignedIndex(state, world) {
-  const spin = state.dragging ? state.spin : Math.round(state.spin);
-  return mod(world - spin, state.belt.length);
+  return mod(world - Math.round(state.spin), state.belt.length);
 }
 
 export function snapSpin(state) {
@@ -221,36 +220,73 @@ function arriveStation(state, index) {
   const open = station.slots.findIndex((slot) => !slot);
   const holdOpen = holdSlots(state) > 0 && !station.hold;
   const jammed = state.jam && state.jam.station === index;
-  if (jammed || (open < 0 && !holdOpen)) {
+  if (jammed) {
     track.dir = -1;
     return;
   }
-  if (open >= 0) station.slots[open] = track.toy;
-  else station.hold = track.toy;
-  state.tracks[index] = null;
-  if (open >= 0) payList(state, index);
+  if (open >= 0) {
+    station.slots[open] = track.toy;
+    state.tracks[index] = null;
+    payList(state, index);
+    return;
+  }
+  if (holdOpen) {
+    station.hold = track.toy;
+    state.tracks[index] = null;
+    settleHold(state, index);
+    return;
+  }
+  if (station.hold && listStillNeeds(station, track.toy.type) && excessSlot(station) >= 0) {
+    const parked = station.hold;
+    station.hold = track.toy;
+    track.toy = parked;
+    track.dir = -1;
+    settleHold(state, index);
+    return;
+  }
+  track.dir = -1;
 }
 
-/** A held toy fills an open cup on its own elf when the list needs it.
+/** A held toy finishes the list when that list needs it. A wrong toy in a list cup stays in the hold.
  *  A finished elf sends a held toy back when another list still needs that toy and no other copy is out. */
 function releaseHeldToys(state) {
   for (let index = 0; index < state.stations.length; index += 1) {
     if (state.phase !== "play") return;
-    placeHeldToy(state, index);
+    settleHold(state, index);
   }
   if (state.phase !== "play") return;
   for (let index = 0; index < state.stations.length; index += 1) returnIdleHold(state, index);
 }
 
-function placeHeldToy(state, index) {
+function settleHold(state, index) {
   const station = state.stations[index];
-  if (!station.hold || state.tracks[index]) return;
+  if (!station.hold || !station.list.length || state.phase !== "play") return;
   if (!listStillNeeds(station, station.hold.type)) return;
   const open = station.slots.findIndex((slot) => !slot);
-  if (open < 0) return;
-  station.slots[open] = station.hold;
-  station.hold = null;
+  if (open >= 0) {
+    station.slots[open] = station.hold;
+    station.hold = null;
+    payList(state, index);
+    return;
+  }
+  const excess = excessSlot(station);
+  if (excess < 0) return;
+  const displaced = station.slots[excess];
+  station.slots[excess] = station.hold;
+  station.hold = displaced;
   payList(state, index);
+}
+
+function excessSlot(station) {
+  const seen = new Map();
+  for (let i = 0; i < station.slots.length; i += 1) {
+    const toy = station.slots[i];
+    if (!toy) continue;
+    const used = (seen.get(toy.type) || 0) + 1;
+    seen.set(toy.type, used);
+    if (used > countType(station.list, toy.type)) return i;
+  }
+  return -1;
 }
 
 function returnIdleHold(state, index) {
@@ -305,7 +341,7 @@ function payList(state, index) {
 function arriveBelt(state, index) {
   const track = state.tracks[index];
   const beltIndex = alignedIndex(state, track.world);
-  if (state.belt[beltIndex]) {
+  if (!Number.isInteger(beltIndex) || state.belt[beltIndex]) {
     track.dir = 1;
     return;
   }
