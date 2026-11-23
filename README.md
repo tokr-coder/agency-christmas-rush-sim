@@ -16,16 +16,15 @@ Open `http://127.0.0.1:8080`.
 
 GitHub Pages can host the workshop, and it cannot run PHP. The game still plays. The results screen says the board needs a PHP host.
 
-A shorter day for rehearsal is `http://127.0.0.1:8080/?daySeconds=20` (8 to 3600 seconds). The shipped day length is `dayLengthSeconds` in `js/config.js` (75 seconds).
-
 ## How a day works
 
 - The slots above the belt are the queue. Empty slots are open. A toy steps onto the green cup when that cup is empty.
 - The belt is two rails with round ends. It does not move by itself. Drag along it to slide the cups.
 - A curved spur runs to each elf. Tap the toy on that cup to send it. A spur that already has a toy will not take another. Tap a toy at the elf to send it back. A full end sends the toy back the other way.
 - Order does not matter. Toys fill the first open cup, and an elf accepts only as many toys as the list shows. When those icons match, those cups clear, pay earnings, and a new list appears. A holding cup, bought at night, can keep one extra toy and is not cleared.
-- A new toy is always one a list still needs. When more than one toy is still missing, the next one is chosen at random, not always for the first elf. Toys keep arriving even when those needs are already waiting in the queue. A toy no list needs is not dealt.
-- Later days add toy icons, longer lists, more benches, a faster line, a rush, or a jammed spur.
+- Each day is a fixed batch of toys, twelve on the first day. The lists are dealt out before the toys, and the queue receives exactly those toys. The header bar fills as lists are finished. Clearing the batch is the day's maximum score.
+- A bench's next toy is chosen at random from the lists currently showing, until those lists are covered. Later lists can then send a toy early. It still belongs to a list that bench will get.
+- When it is time to add a toy and every queue slot is full, the day ends. Stars already earned stay. Toys still waiting are not paid. The night shop opens with less to spend.
 - After each day except the last, the shop sells a longer queue, faster spurs, one holding cup, and one extra bench. Spur speed is only the track upgrade. Cheer is turned off for now.
 
 ## Leaderboard

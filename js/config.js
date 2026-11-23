@@ -1,22 +1,13 @@
-/** Twelve sorting days. dayLengthSeconds is one day in real time.
- *  A local URL can rehearse a shorter day: ?daySeconds=20
- */
+/** Twelve sorting days. A day ends when its toy batch is finished, or when the queue is full and the next toy cannot enter. */
 
 export const CONFIG = {
   dayCount: 12,
-  dayLengthSeconds: 75,
   beltSlots: 8,
   queueBase: 4,
   cheerEnabled: false,
   cheerMax: 100,
 };
 
-export function loadConfig(search = "") {
-  const params = new URLSearchParams(search);
-  const daySeconds = Number(params.get("daySeconds"));
-  const config = { ...CONFIG };
-  if (Number.isFinite(daySeconds) && daySeconds >= 8 && daySeconds <= 3600) {
-    config.dayLengthSeconds = daySeconds;
-  }
-  return config;
+export function loadConfig() {
+  return { ...CONFIG };
 }

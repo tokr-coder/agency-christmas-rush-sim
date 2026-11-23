@@ -9,7 +9,6 @@ export function createGame(config, seed) {
     rand: mulberry32(seed >>> 0),
     phase: "title",
     day: 0,
-    dayLeft: 0,
     earned: 0,
     cash: 0,
     cheerMax: config.cheerMax,
@@ -28,7 +27,10 @@ export function createGame(config, seed) {
     spawnEvery: 2.7,
     typeCount: 4,
     listLength: 2,
-    event: null,
+    batch: 0,
+    processed: 0,
+    spawned: 0,
+    listStack: [],
     rushLeft: 0,
     jam: null,
     breakCursor: 0,
@@ -44,13 +46,14 @@ export function beginDay(state) {
   state.typeCount = plan.types;
   state.listLength = plan.list;
   state.spawnEvery = plan.spawn;
-  state.dayLeft = state.config.dayLengthSeconds;
+  state.batch = plan.batch;
+  state.processed = 0;
+  state.spawned = 0;
   state.phase = "play";
   state.over = false;
   state.spawnIn = 0.8;
   state.rushLeft = 0;
   state.jam = null;
-  state.event = plan.event ? { ...plan.event, armed: true } : null;
   state.belt = state.belt.map(() => null);
   state.queue = [];
   state.tracks = state.stations.map(() => null);
@@ -63,11 +66,14 @@ export function beginDay(state) {
       state.stations[i].cheer = Math.max(state.stations[i].cheer, 45);
     }
   }
-  for (const station of state.stations) {
-    station.list = rollList(state);
-    station.slots = Array.from({ length: station.list.length }, () => null);
-  }
+  state.listStack = buildLists(state);
+  for (const station of state.stations) assignList(state, station);
   state.tracks = state.stations.map(() => null);
+}
+
+function endDay(state) {
+  state.dragging = false;
+  state.phase = state.day >= state.config.dayCount ? "results" : "shop";
 }
 
 export function nextDay(state) {
@@ -153,23 +159,6 @@ export function buy(state, id) {
 
 export function tick(state, dt) {
   if (state.phase !== "play" || !(dt > 0)) return;
-  state.dayLeft -= dt;
-  if (state.dayLeft <= 0) {
-    state.dayLeft = 0;
-    state.dragging = false;
-    state.phase = state.day >= state.config.dayCount ? "results" : "shop";
-    return;
-  }
-  if (state.event?.armed && state.dayLeft <= state.config.dayLengthSeconds * (1 - state.event.at)) {
-    state.event.armed = false;
-    if (state.event.kind === "rush") state.rushLeft = state.event.seconds;
-    if (state.event.kind === "jam") {
-      state.jam = {
-        station: Math.min(state.event.station || 0, state.stations.length - 1),
-        left: state.event.seconds,
-      };
-    }
-  }
   if (state.rushLeft > 0) state.rushLeft = Math.max(0, state.rushLeft - dt);
   if (state.jam) {
     state.jam.left -= dt;
@@ -177,15 +166,17 @@ export function tick(state, dt) {
   }
   state.spawnIn -= dt;
   if (state.spawnIn <= 0) {
-    state.spawnIn = state.rushLeft > 0 ? state.spawnEvery * 0.55 : state.spawnEvery;
-    if (state.queue.length >= queueMax(state)) {
-      if (state.config.cheerEnabled) {
-        loseCheer(state, cheerHit(state));
-        if (state.phase !== "play") return;
+    state.spawnIn = state.spawnEvery;
+    if (state.spawned < state.batch) {
+      if (state.queue.length >= queueMax(state)) {
+        endDay(state);
+        return;
       }
-    } else {
       const toy = makeToy(state);
-      if (toy) state.queue.push(toy);
+      if (toy) {
+        state.queue.push(toy);
+        state.spawned += 1;
+      }
     }
   }
   acceptIntake(state);
@@ -228,13 +219,14 @@ function arriveStation(state, index) {
   if (open >= 0) station.slots[open] = track.toy;
   else station.hold = track.toy;
   state.tracks[index] = null;
-  if (open < 0 || !covers(station.slots, station.list)) return;
+  if (open < 0 || !station.list.length || !covers(station.slots, station.list)) return;
   const pay = 24 + station.list.length * 14 + (state.day - 1) * 3;
   state.earned += pay;
   state.cash += pay;
-  station.list = rollList(state);
-  station.slots = Array.from({ length: station.list.length }, () => null);
+  state.processed += station.list.length;
+  assignList(state, station);
   state.burst = { station: index, token: ++state.burstToken };
+  if (state.processed >= state.batch) endDay(state);
 }
 
 function arriveBelt(state, index) {
@@ -288,7 +280,7 @@ function addStation(state) {
     cheer: state.cheerMax,
     slots: [],
     hold: null,
-    list: rollList(state),
+    list: [],
   });
   state.tracks.push(null);
 }
@@ -299,29 +291,64 @@ function makeToy(state) {
   return { uid: state.uid++, type };
 }
 
-/** A needed toy is drawn at random from every list that is still short.
- *  Copies already waiting in the queue do not stop the line, and the draw is not
- *  the first station's gap, so the next toy cannot be predicted from station order. */
+/** Next toy is a random uncovered need on a bench. Later-list toys wait until those needs are already out. */
 function nextToyType(state) {
-  const needed = [];
-  for (const station of state.stations) needed.push(...missingTypes(station));
-  const pool = needed.length ? needed : state.stations.flatMap((station) => station.list);
-  if (!pool.length) return null;
-  return pool[Math.floor(state.rand() * pool.length)];
+  const needs = [];
+  const shared = tally(state.queue);
+  for (const toy of state.belt) if (toy) addTally(shared, toy.type);
+  state.stations.forEach((station, index) => {
+    if (station.hold) addTally(shared, station.hold.type);
+    const inbound = state.tracks[index];
+    const have = tally(station.slots);
+    if (inbound && inbound.dir > 0) addTally(have, inbound.toy.type);
+    else if (inbound) addTally(shared, inbound.toy.type);
+    for (const type of station.list) {
+      if (!takeTally(have, type)) needs.push(type);
+    }
+    for (const [type, count] of have) {
+      for (let n = 0; n < count; n += 1) addTally(shared, type);
+    }
+  });
+  const uncovered = needs.filter((type) => !takeTally(shared, type));
+  if (uncovered.length) return uncovered[Math.floor(state.rand() * uncovered.length)];
+  const future = state.listStack.flatMap((list) => list);
+  const still = future.filter((type) => !takeTally(shared, type));
+  if (!still.length) return null;
+  return still[Math.floor(state.rand() * still.length)];
 }
 
-function missingTypes(station) {
-  const have = new Map();
-  for (const toy of station.slots) {
-    if (toy) have.set(toy.type, (have.get(toy.type) || 0) + 1);
+function tally(toys) {
+  const counts = new Map();
+  for (const toy of toys) if (toy) addTally(counts, toy.type);
+  return counts;
+}
+
+function addTally(counts, type) {
+  counts.set(type, (counts.get(type) || 0) + 1);
+}
+
+function takeTally(counts, type) {
+  const left = counts.get(type) || 0;
+  if (left <= 0) return false;
+  counts.set(type, left - 1);
+  return true;
+}
+
+function buildLists(state) {
+  const count = state.batch / state.listLength;
+  const lists = Array.from({ length: count }, () => rollList(state));
+  for (let i = lists.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(state.rand() * (i + 1));
+    const swap = lists[i];
+    lists[i] = lists[j];
+    lists[j] = swap;
   }
-  const missing = [];
-  for (const type of station.list) {
-    const left = (have.get(type) || 0) - 1;
-    if (left < 0) missing.push(type);
-    else have.set(type, left);
-  }
-  return missing;
+  return lists;
+}
+
+function assignList(state, station) {
+  station.list = state.listStack.pop() || [];
+  station.slots = Array.from({ length: station.list.length }, () => null);
 }
 
 function rollList(state) {

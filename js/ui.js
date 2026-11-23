@@ -306,8 +306,8 @@ function syncOverlay() {
 function paint() {
   dayEl.textContent = String(Math.max(state.day, 1));
   cashEl.textContent = String(state.earned);
-  const span = state.config.dayLengthSeconds || 1;
-  const gone = state.phase === "play" ? 1 - state.dayLeft / span : state.phase === "title" ? 0 : 1;
+  const ratio = state.batch ? state.processed / state.batch : 0;
+  const gone = state.phase === "title" ? 0 : ratio;
   dayFill.style.width = `${Math.max(0, Math.min(1, gone)) * 100}%`;
   if (floorEl.hidden) return;
   const box = metrics();

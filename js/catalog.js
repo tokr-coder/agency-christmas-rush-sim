@@ -22,20 +22,20 @@ export const ELVES = [
 
 /** types: how many toy icons exist. list: icons each elf must gather.
  *  stations: benches wanted if a reserve elf is free. spawn: seconds between toys.
- *  event.at is how far through the day the disruption starts. */
+ *  batch: toys in the day, always a multiple of list length. */
 export const DAYS = [
-  { types: 4, list: 2, stations: 2, spawn: 2.7 },
-  { types: 4, list: 2, stations: 2, spawn: 2.45 },
-  { types: 5, list: 3, stations: 2, spawn: 2.25 },
-  { types: 5, list: 3, stations: 2, spawn: 2.1 },
-  { types: 6, list: 3, stations: 3, spawn: 2.0 },
-  { types: 6, list: 3, stations: 3, spawn: 1.85 },
-  { types: 6, list: 3, stations: 3, spawn: 1.75, event: { at: 0.42, kind: "rush", seconds: 14 } },
-  { types: 7, list: 4, stations: 3, spawn: 1.65 },
-  { types: 7, list: 4, stations: 4, spawn: 1.55 },
-  { types: 8, list: 4, stations: 4, spawn: 1.5, event: { at: 0.48, kind: "jam", seconds: 12, station: 0 } },
-  { types: 8, list: 4, stations: 4, spawn: 1.4 },
-  { types: 8, list: 4, stations: 4, spawn: 1.3, event: { at: 0.4, kind: "rush", seconds: 16 } },
+  { types: 4, list: 2, stations: 2, spawn: 2.7, batch: 12 },
+  { types: 4, list: 2, stations: 2, spawn: 2.45, batch: 16 },
+  { types: 5, list: 3, stations: 2, spawn: 2.25, batch: 18 },
+  { types: 5, list: 3, stations: 2, spawn: 2.1, batch: 18 },
+  { types: 6, list: 3, stations: 3, spawn: 2.0, batch: 21 },
+  { types: 6, list: 3, stations: 3, spawn: 1.85, batch: 21 },
+  { types: 6, list: 3, stations: 3, spawn: 1.75, batch: 24 },
+  { types: 7, list: 4, stations: 3, spawn: 1.65, batch: 24 },
+  { types: 7, list: 4, stations: 4, spawn: 1.55, batch: 24 },
+  { types: 8, list: 4, stations: 4, spawn: 1.5, batch: 28 },
+  { types: 8, list: 4, stations: 4, spawn: 1.4, batch: 28 },
+  { types: 8, list: 4, stations: 4, spawn: 1.3, batch: 32 },
 ];
 
 export const UPGRADES = [
